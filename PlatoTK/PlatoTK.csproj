@@ -13,7 +13,7 @@
     <Description>Modding Toolkit for Stardew Valley</Description>
     <Copyright>Copyright 2020</Copyright>
     <PackageProjectUrl>https://github.com/Platonymous/</PackageProjectUrl>
-    <PackageIconUrl>https://github.com/Platonymous/PlatoTK/blob/master/_assets/plato-nuget-icon.png?raw=true</PackageIconUrl>
+    <PackageIconUrl>https://github.com/Platonymous/PlatoTK/blob/master/_assets/plato-icon.png?raw=true</PackageIconUrl>
     <RepositoryUrl>https://github.com/Platonymous/</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageLicenseExpression></PackageLicenseExpression>
