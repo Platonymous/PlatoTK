@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AssemblyName>PlatoTK</AssemblyName>
     <RootNamespace>PlatoTK</RootNamespace>
-    <Version>1.1.0</Version>
+    <Version>1.1.4</Version>
     <TargetFramework>net452</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <EnableHarmony>true</EnableHarmony>

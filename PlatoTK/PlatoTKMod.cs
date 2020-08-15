@@ -6,7 +6,6 @@ namespace PlatoTK
     {
         public override void Entry(IModHelper helper)
         {
-            
         }
     }
 }

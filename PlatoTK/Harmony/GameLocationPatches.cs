@@ -18,7 +18,6 @@ namespace PlatoTK.Harmony
                 return;
 
             _patched = true;
-            Console.WriteLine("InitializePatch");
             var isActionableTile = AccessTools.Method(typeof(GameLocation), "isActionableTile");
             var tryToCheckAt = AccessTools.Method(typeof(Game1), "tryToCheckAt");
             var performTouchAction = AccessTools.Method(typeof(GameLocation), "performTouchAction");
@@ -31,16 +30,12 @@ namespace PlatoTK.Harmony
 
         internal static bool TryCallTileAction(string action, string layer, int x, int y, GameLocation location)
         {
-            Console.WriteLine("TryCallTileAction");
-
             string trigger = action.Split(' ')[0];
             bool flag = false;
-            Console.WriteLine("TryCallTileAction:" + trigger);
 
             foreach (ITileAction tileAction in TileActions.Where( t => t.Trigger.Contains(trigger)))
             {
                 flag = true;
-                Console.WriteLine("Invoking:" + tileAction.Trigger[0]);
 
                 tileAction.Handler.Invoke(new TileActionTrigger(action, layer, x, y, location));
             }

@@ -15,5 +15,8 @@ namespace PlatoTK
         IUIHelper UI { get; }
         StardewModdingAPI.IModHelper ModHelper { get; }
         DelayedAction SetDelayedAction(int delay, Action action);
+
+        void SetDelayedUpdateAction(int delay, Action action);
+        void SetTickDelayedUpdateAction(int delay, Action action);
     }
 }
