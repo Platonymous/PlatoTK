@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PlatoTK.UI.Components;
 using StardewValley;
 using StardewValley.Menus;
+using System;
 
 namespace PlatoTK.UI
 {
@@ -11,6 +12,8 @@ namespace PlatoTK.UI
         public virtual IWrapper Menu { get; }
 
         protected readonly IPlatoHelper Helper;
+
+        public Func<bool> ShouldDraw { get; set; } = () => true;
 
         public UIMenu(IPlatoHelper helper, IWrapper menu)
             :  base(0,0,Game1.viewport.Width, Game1.viewport.Height, false)
@@ -21,8 +24,11 @@ namespace PlatoTK.UI
 
         public override void draw(SpriteBatch b)
         {
-            Menu.Draw(b);
-            drawMouse(b);
+            if (ShouldDraw?.Invoke() ?? true)
+            {
+                Menu.Draw(b);
+                drawMouse(b);
+            }
         }
 
         public override void update(GameTime time)

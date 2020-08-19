@@ -10,6 +10,7 @@ namespace PlatoTK.UI
 {
     public interface IUIMenu
     {
+        Func<bool> ShouldDraw { get; set; }
         IWrapper Menu { get; }
     }
 }
