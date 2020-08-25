@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     public interface IOnConstruction
     {

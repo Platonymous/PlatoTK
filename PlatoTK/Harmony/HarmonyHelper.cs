@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using PlatoTK.Network;
 using StardewValley;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class HarmonyHelper : InnerHelper, IHarmonyHelper
     {
@@ -149,17 +149,23 @@ namespace PlatoTK.Harmony
                 .GetConstructor(c.GetParameters().Select(p=>p.ParameterType).ToArray()) is ConstructorInfo))
             {
                 List<Type> patchParameters = new List<Type>();
-                patchParameters.Add(typeof(object).MakeByRefType());
-                patchParameters.Add(typeof(MethodInfo));
-                patchParameters.AddRange(constructor.GetParameters().Select(p => p.ParameterType.MakeByRefType()));
+                List<Type> genericParameters = new List<Type>();
 
-                HarmonyInstance.Patch(
-                            original: constructor,
-                            postfix: new HarmonyMethod(
-                                type: typeof(ConstructorPatches),
-                                name: nameof(ConstructorPatches.ConstructorPatch),
-                                parameters: patchParameters.ToArray()
-                            ));
+                patchParameters.Add(typeof(TOriginal));
+                genericParameters.Add(typeof(TOriginal));
+                patchParameters.Add(typeof(MethodInfo));
+
+
+                patchParameters.AddRange(constructor.GetParameters().Select(p => p.ParameterType));
+                genericParameters.AddRange(constructor.GetParameters().Select(p => p.ParameterType));
+
+                if (AccessTools.GetDeclaredMethods(typeof(ConstructorPatches)).FirstOrDefault(m => m.Name == nameof(ConstructorPatches.ConstructorPatch) && m.IsGenericMethod && m.GetParameters().Length == patchParameters.Count) is MethodInfo sMethod)
+                {
+                    HarmonyInstance.Patch(
+                        original: constructor,
+                        postfix: new HarmonyMethod(sMethod.MakeGenericMethod(genericParameters.ToArray()))
+                        );
+                }
             }
         }
 
@@ -170,12 +176,9 @@ namespace PlatoTK.Harmony
 
             TracedTypes.Add(new TypeForwarding(originalType, targetType, Helper, targetForAllInstances));
 
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            var declaredFlags = BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance;
-
-            foreach (MethodInfo tmethod in targetType.GetMethods(declaredFlags))
+            foreach (MethodInfo tmethod in AccessTools.GetDeclaredMethods(targetType))
             {
-                if (originalType.GetMethod(tmethod.Name, flags, Type.DefaultBinder, tmethod.GetParameters().Select(p => p.ParameterType).ToArray(), null) is MethodInfo method && method.GetParameters() is ParameterInfo[] parameters)
+                if (AccessTools.Method(originalType,tmethod.Name, tmethod.GetParameters().Select(p => p.ParameterType).ToArray(), null) is MethodInfo method && method.GetParameters() is ParameterInfo[] parameters)
                 {
                     if (TracedMethods.Contains(method))
                         continue;
@@ -184,31 +187,30 @@ namespace PlatoTK.Harmony
 
                     bool hasReturnType = method.ReturnType != Type.GetType("System.Void");
                     List<Type> patchParameters = new List<Type>();
-                    List<Type> specificParameters = new List<Type>();
+                    List<Type> genericParameters = new List<Type>();
 
                     if (hasReturnType)
+                    {
+                        genericParameters.Add(method.ReturnType);
                         patchParameters.Add(typeof(object).MakeByRefType());
+                    }
+
+                    genericParameters.Add(originalType);
 
                     string patchName = hasReturnType ? nameof(MethodPatches.ForwardMethodPatch) : nameof(MethodPatches.ForwardMethodPatchVoid);
 
                     patchParameters.Add(typeof(object));
                     patchParameters.Add(typeof(MethodInfo));
                     patchParameters.AddRange(method.GetParameters().Select(p => typeof(object)));
-                    specificParameters.AddRange(method.GetParameters().Select(p => p.ParameterType));
+                    genericParameters.AddRange(method.GetParameters().Select(p => p.ParameterType));
 
-                    HarmonyMethod patchMethod = new HarmonyMethod(
-                                type: typeof(MethodPatches),
-                                name: patchName,
-                                parameters: patchParameters.ToArray());
-
-                    if (specificParameters.Count > 0)
-                        if (AccessTools.GetDeclaredMethods(typeof(MethodPatches)).FirstOrDefault(m => m.Name == patchName && m.IsGenericMethod && m.GetParameters().Length == patchParameters.Count) is MethodInfo sMethod)
-                            patchMethod = new HarmonyMethod(sMethod.MakeGenericMethod(specificParameters.ToArray()));
-
-                    HarmonyInstance.Patch(
-                        original: method,
-                        prefix: patchMethod
-                        );
+                    if (AccessTools.GetDeclaredMethods(typeof(MethodPatches)).FirstOrDefault(m => m.Name == patchName && m.IsGenericMethod && m.GetParameters().Length == patchParameters.Count) is MethodInfo sMethod)
+                    {
+                        HarmonyInstance.Patch(
+                            original: method,
+                            prefix: new HarmonyMethod(sMethod.MakeGenericMethod(genericParameters.ToArray()))
+                            );
+                    }
 
                 }
             }

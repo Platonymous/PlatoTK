@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using System;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class PlatoTexture : Texture2D, IPlatoTexture
     {

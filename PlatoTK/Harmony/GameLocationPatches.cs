@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class GameLocationPatches
     {
@@ -22,7 +22,7 @@ namespace PlatoTK.Harmony
             var tryToCheckAt = AccessTools.Method(typeof(Game1), "tryToCheckAt");
             var performTouchAction = AccessTools.Method(typeof(GameLocation), "performTouchAction");
 
-            HarmonyInstance harmony = HarmonyInstance.Create($"Plato.TilePatches");
+            var harmony = HarmonyInstance.Create($"Plato.TilePatches");
             harmony.Patch(isActionableTile, postfix: new HarmonyMethod(AccessTools.Method(typeof(GameLocationPatches), nameof(IsActionableTile))));
             harmony.Patch(tryToCheckAt, postfix: new HarmonyMethod(AccessTools.Method(typeof(GameLocationPatches), nameof(TryToCheckAt))));
             harmony.Patch(performTouchAction, postfix: new HarmonyMethod(AccessTools.Method(typeof(GameLocationPatches), nameof(PerformTouchAction))));

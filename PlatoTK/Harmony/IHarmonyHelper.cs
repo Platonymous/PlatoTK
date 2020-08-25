@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     public interface IHarmonyHelper
     {

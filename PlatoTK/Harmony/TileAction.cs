@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class TileAction : ITileAction
     {

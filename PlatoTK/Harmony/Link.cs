@@ -1,7 +1,7 @@
 ﻿using PlatoTK.Reflection;
 using System;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class Link : ILink 
     {

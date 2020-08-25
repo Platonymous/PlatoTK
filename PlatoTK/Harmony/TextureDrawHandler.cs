@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class TextureDrawHandler<TData> : TextureDrawHandler, ITextureDrawHandler<TData>
     {

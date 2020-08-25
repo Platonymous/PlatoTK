@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     public interface IPlatoTexture
     {

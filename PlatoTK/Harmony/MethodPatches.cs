@@ -4,18 +4,18 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Harmony;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     public class MethodPatches
     {
-        internal static bool ForwardMethodVoid(object __instance, MethodInfo __originalMethod, params object[] args)
+        internal static bool ForwardMethodVoid<TInstance>(TInstance __instance, MethodInfo __originalMethod, params object[] args)
         {
             object instance = __instance;
             Type iType = __instance.GetType();
             if (HarmonyHelper.TracedTypes.FirstOrDefault(t => t.FromType == iType.GetType() && t.TargetForAllInstances != null) is TypeForwarding allForward
-                && allForward.TargetForAllInstances.GetType()
-                .GetMethod(__originalMethod.Name, __originalMethod
+                && AccessTools.DeclaredMethod(allForward.TargetForAllInstances.GetType(), __originalMethod.Name, __originalMethod
                 .GetParameters()?.Select(p => p.ParameterType)?.ToArray() ?? new Type[0]) is MethodInfo targetMethod)
             {
                 if (allForward.TargetForAllInstances is ILinked linkedTarget)
@@ -27,7 +27,7 @@ namespace PlatoTK.Harmony
                 return false;
             }
             else if (HarmonyHelper.TracedObjects.FirstOrDefault(t => t.Original == instance) is TracedObject registred
-                && registred.Target.GetType().GetMethod(__originalMethod.Name, __originalMethod.GetParameters()?.Select(p => p.ParameterType)?.ToArray() ?? new Type[0]) is MethodInfo targetMethod2)
+                && AccessTools.DeclaredMethod(registred.Target.GetType(), __originalMethod.Name, __originalMethod.GetParameters()?.Select(p => p.ParameterType)?.ToArray() ?? new Type[0]) is MethodInfo targetMethod2)
             {
                 if (registred.Target is ILinked linkedTarget)
                     linkedTarget.Link = new Link(__instance, linkedTarget, registred.Helper);
@@ -40,29 +40,28 @@ namespace PlatoTK.Harmony
             return true;
         }
 
-        internal static bool ForwardMethod(ref object __result, object __instance, MethodInfo __originalMethod, params object[] args)
+        internal static bool ForwardMethod<TResult, TInstance>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod, params object[] args)
         {
             object instance = __instance;
             Type iType = __instance.GetType();
             if (HarmonyHelper.TracedTypes.FirstOrDefault(t => t.FromType == iType.GetType() && t.TargetForAllInstances != null) is TypeForwarding allForward
-                && allForward.TargetForAllInstances.GetType()
-                .GetMethod(__originalMethod.Name, __originalMethod
+                && AccessTools.DeclaredMethod(allForward.TargetForAllInstances.GetType(), __originalMethod.Name, __originalMethod
                 .GetParameters()?.Select(p => p.ParameterType)?.ToArray() ?? new Type[0]) is MethodInfo targetMethod)
             {
                 if (allForward.TargetForAllInstances is ILinked linkedTarget)
                     linkedTarget.Link = new Link(__instance, linkedTarget, allForward.Helper);
 
-                    __result = targetMethod.Invoke(allForward.TargetForAllInstances, args);
+                __result = (TResult)targetMethod.Invoke(allForward.TargetForAllInstances, args);
 
                 return false;
             }
             else if (HarmonyHelper.TracedObjects.FirstOrDefault(t => t.Original == instance) is TracedObject registred
-                && registred.Target.GetType().GetMethod(__originalMethod.Name, __originalMethod.GetParameters()?.Select(p => p.ParameterType)?.ToArray() ?? new Type[0]) is MethodInfo targetMethod2)
+                && AccessTools.DeclaredMethod(registred.Target.GetType(), __originalMethod.Name, __originalMethod.GetParameters()?.Select(p => p.ParameterType)?.ToArray() ?? new Type[0]) is MethodInfo targetMethod2)
             {
                 if (registred.Target is ILinked linkedTarget)
                     linkedTarget.Link = new Link(__instance, linkedTarget, registred.Helper);
 
-                __result = targetMethod2.Invoke(registred.Target, args);
+                __result = (TResult)targetMethod2.Invoke(registred.Target, args);
 
                 return false;
             }
@@ -71,25 +70,25 @@ namespace PlatoTK.Harmony
         }
 
         //----------
-        
-        internal static bool ForwardMethodPatch(ref object __result, object __instance, MethodInfo __originalMethod)
+
+        internal static bool ForwardMethodPatch<TResult, TInstance>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod)
         {
             return ForwardMethod(ref __result, __instance, __originalMethod);
         }
 
-        internal static bool ForwardMethodPatch<T0>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0)
         {
             return ForwardMethod(ref __result, __instance, __originalMethod, __0);
         }
-        internal static bool ForwardMethodPatch<T0,T1>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1)
         {
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1);
         }
 
-        internal static bool ForwardMethodPatch<T0, T1, T2>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T1 __0,
             T1 __1,
             T2 __2)
@@ -97,7 +96,7 @@ namespace PlatoTK.Harmony
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2);
         }
 
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -106,7 +105,7 @@ namespace PlatoTK.Harmony
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3);
         }
 
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -116,7 +115,7 @@ namespace PlatoTK.Harmony
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3, __4);
         }
 
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4, T5>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4, T5>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -127,7 +126,7 @@ namespace PlatoTK.Harmony
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3, __4, __5);
         }
 
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4, T5, T6>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4, T5, T6>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
            T0 __0,
            T1 __1,
            T2 __2,
@@ -139,7 +138,7 @@ namespace PlatoTK.Harmony
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6);
         }
 
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4, T5, T6, T7>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4, T5, T6, T7>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
            T0 __0,
            T1 __1,
            T2 __2,
@@ -151,7 +150,7 @@ namespace PlatoTK.Harmony
         {
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7);
         }
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -164,7 +163,7 @@ namespace PlatoTK.Harmony
         {
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7, __8);
         }
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -178,7 +177,7 @@ namespace PlatoTK.Harmony
         {
             return ForwardMethod(ref __result, __instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7, __8, __9);
         }
-        internal static bool ForwardMethodPatch<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(ref object __result, object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatch<TResult, TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(ref TResult __result, TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -197,25 +196,25 @@ namespace PlatoTK.Harmony
 
         //---------
 
-        internal static bool ForwardMethodPatchVoid(object __instance, MethodInfo __originalMethod)
+        internal static bool ForwardMethodPatchVoid<TInstance>(TInstance __instance, MethodInfo __originalMethod)
         {
             return ForwardMethodVoid(__instance, __originalMethod);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0)
         {
             return ForwardMethodVoid(__instance, __originalMethod, __0);
         }
 
-        public static bool ForwardMethodPatchVoid<T0, T1>(object __instance, MethodInfo __originalMethod,
+        public static bool ForwardMethodPatchVoid<TInstance, T0, T1>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1)
         {
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2)
@@ -223,7 +222,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -232,17 +231,17 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4>(object __instance, MethodInfo __originalMethod, 
-            T0 __0, 
-            T1 __1, 
-            T2 __2, 
-            T3 __3, 
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4>(TInstance __instance, MethodInfo __originalMethod,
+            T0 __0,
+            T1 __1,
+            T2 __2,
+            T3 __3,
             T4 __4)
         {
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -253,7 +252,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -265,7 +264,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6, T7>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6, T7>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -278,7 +277,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6, T7, T8>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -292,7 +291,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7, __8);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -307,7 +306,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7, __8, __9);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -323,7 +322,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7, __8, __9, __10);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,
@@ -340,7 +339,7 @@ namespace PlatoTK.Harmony
             return ForwardMethodVoid(__instance, __originalMethod, __0, __1, __2, __3, __4, __5, __6, __7, __8, __9, __10, __11);
         }
 
-        internal static bool ForwardMethodPatchVoid<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(object __instance, MethodInfo __originalMethod,
+        internal static bool ForwardMethodPatchVoid<TInstance, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(TInstance __instance, MethodInfo __originalMethod,
             T0 __0,
             T1 __1,
             T2 __2,

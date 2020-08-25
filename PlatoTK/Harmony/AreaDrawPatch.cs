@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class AreaDrawPatch
     {

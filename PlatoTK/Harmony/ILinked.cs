@@ -1,4 +1,4 @@
-﻿namespace PlatoTK.Harmony
+﻿namespace PlatoTK.Patching
 {
     public interface ILinked
     {

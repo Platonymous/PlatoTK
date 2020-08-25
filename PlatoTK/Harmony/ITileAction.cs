@@ -2,7 +2,7 @@
 using StardewValley;
 using System;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     public interface ITileAction
     {

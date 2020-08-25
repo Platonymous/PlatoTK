@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace PlatoTK.Harmony
+namespace PlatoTK.Patching
 {
     internal class SpriteBatchPatches
     {
@@ -14,26 +14,25 @@ namespace PlatoTK.Harmony
 
         internal static bool _patched = false;
         internal static HashSet<AreaDrawPatch> DrawPatches = new HashSet<AreaDrawPatch>();
-
-        internal static void InitializePatch()
+        public static void InitializePatch()
         {
             if (_patched)
                 return;
 
             _patched = true;
 
-            HarmonyInstance harmony = HarmonyInstance.Create($"Plato.DrawPatches");
+            var harmony = HarmonyInstance.Create($"Plato.DrawPatches");
 
-            foreach (MethodInfo method in typeof(SpriteBatch).GetMethods(BindingFlags.Public | BindingFlags.Instance).Where(m => m.Name.ToLower() == "draw"))
+            foreach (MethodInfo method in AccessTools.GetDeclaredMethods(typeof(SpriteBatch)).Where(m => m.IsPublic && m.Name == "Draw"))
             {
-                List<Type> parameterTypes = new List<Type>() { typeof(SpriteBatch).MakeByRefType(), typeof(Texture2D).MakeByRefType() };
-                parameterTypes.AddRange(method.GetParameters().Where(pr => pr.Name.ToLower() != "texture").Select(p => p.ParameterType));
-                if (typeof(SpriteBatchPatches).GetMethod("Draw", BindingFlags.NonPublic | BindingFlags.Static, Type.DefaultBinder, parameterTypes.ToArray(), new ParameterModifier[0]) is MethodInfo targetMethod)
+                List<Type> parameterTypes = new List<Type>() { typeof(SpriteBatch)};
+                parameterTypes.AddRange(method.GetParameters().Select(p => p.ParameterType));
+                if (AccessTools.DeclaredMethod(typeof(SpriteBatchPatches), "Draw", parameterTypes.ToArray()) is MethodInfo targetMethod)
                     harmony.Patch(method, new HarmonyMethod(targetMethod), null, null);
             }
         }
 
-        internal static bool DrawFix(ref SpriteBatch __instance, ref Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, Vector2 origin, float rotation = 0f, SpriteEffects effects = SpriteEffects.None, float layerDepth = 0f)
+        public static bool DrawFix(SpriteBatch __instance, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, Vector2 origin, float rotation = 0f, SpriteEffects effects = SpriteEffects.None, float layerDepth = 0f)
         {
             if (texture == null)
                 return true;
@@ -72,66 +71,66 @@ namespace PlatoTK.Harmony
             return true;
         }
 
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
-                return DrawFix(ref __instance, ref texture, destinationRectangle, sourceRectangle, color, origin, rotation, effects, layerDepth);
+                return DrawFix(__instance, texture, destinationRectangle, sourceRectangle, color, origin, rotation, effects, layerDepth);
 
             return true;
         }
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
-                return DrawFix(ref __instance, ref texture, destinationRectangle, sourceRectangle, color, Vector2.Zero);
+                return DrawFix(__instance, texture, destinationRectangle, sourceRectangle, color, Vector2.Zero);
 
             return true;
         }
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Rectangle destinationRectangle, Color color)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Rectangle destinationRectangle, Color color)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
             {
                 Rectangle sourceRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
-                return DrawFix(ref __instance, ref texture, destinationRectangle, sourceRectangle, color, Vector2.Zero);
+                return DrawFix(__instance, texture, destinationRectangle, sourceRectangle, color, Vector2.Zero);
             }
 
             return true;
         }
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
             {
                 sourceRectangle = sourceRectangle.HasValue ? sourceRectangle.Value : new Rectangle(0, 0, texture.Width, texture.Height);
-                return DrawFix(ref __instance, ref texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(sourceRectangle.Value.Width * scale.X), (int)(sourceRectangle.Value.Height * scale.Y)), sourceRectangle, color, origin, rotation, effects, layerDepth);
+                return DrawFix(__instance, texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(sourceRectangle.Value.Width * scale.X), (int)(sourceRectangle.Value.Height * scale.Y)), sourceRectangle, color, origin, rotation, effects, layerDepth);
             }
 
             return true;
         }
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
             {
                 sourceRectangle = sourceRectangle.HasValue ? sourceRectangle.Value : new Rectangle(0, 0, texture.Width, texture.Height);
-                return DrawFix(ref __instance, ref texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(sourceRectangle.Value.Width * scale), (int)(sourceRectangle.Value.Height * scale)), sourceRectangle, color, origin, rotation, effects, layerDepth);
+                return DrawFix(__instance, texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(sourceRectangle.Value.Width * scale), (int)(sourceRectangle.Value.Height * scale)), sourceRectangle, color, origin, rotation, effects, layerDepth);
             }
 
             return true;
         }
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
             {
                 sourceRectangle = sourceRectangle.HasValue ? sourceRectangle.Value : new Rectangle(0, 0, texture.Width, texture.Height);
-                return DrawFix(ref __instance, ref texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(sourceRectangle.Value.Width), (int)(sourceRectangle.Value.Height)), sourceRectangle, color, Vector2.Zero);
+                return DrawFix(__instance, texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(sourceRectangle.Value.Width), (int)(sourceRectangle.Value.Height)), sourceRectangle, color, Vector2.Zero);
             }
 
             return true;
         }
-        internal static bool Draw(ref SpriteBatch __instance, ref Texture2D texture, Vector2 position, Color color)
+        public static bool Draw(SpriteBatch __instance, Texture2D texture, Vector2 position, Color color)
         {
             if (__instance is SpriteBatch && texture is Texture2D)
             {
                 Rectangle sourceRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
-                return DrawFix(ref __instance, ref texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(texture.Width), (int)(texture.Height)), sourceRectangle, color, Vector2.Zero);
+                return DrawFix(__instance, texture, new Rectangle((int)(position.X), (int)(position.Y), (int)(texture.Width), (int)(texture.Height)), sourceRectangle, color, Vector2.Zero);
             }
 
             return true;
