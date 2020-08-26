@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AssemblyName>PlatoTK</AssemblyName>
     <RootNamespace>PlatoTK</RootNamespace>
-    <Version>1.2.5</Version>
+    <Version>1.2.6</Version>
     <TargetFramework>net452</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <EnableHarmony>true</EnableHarmony>
@@ -12,9 +12,9 @@
     <Authors>Platonymous</Authors>
     <Description>Modding Toolkit for Stardew Valley</Description>
     <Copyright>Copyright 2020</Copyright>
-    <PackageProjectUrl>https://github.com/Platonymous/</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Platonymous/PlatoTK/</PackageProjectUrl>
     <PackageIconUrl>https://github.com/Platonymous/PlatoTK/blob/master/_assets/plato-icon.png?raw=true</PackageIconUrl>
-    <RepositoryUrl>https://github.com/Platonymous/</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Platonymous/PlatoTJ/</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageLicenseExpression></PackageLicenseExpression>
     <PackageLicenseUrl>https://raw.githubusercontent.com/Platonymous/PlatoTK/master/LICENSE</PackageLicenseUrl>
