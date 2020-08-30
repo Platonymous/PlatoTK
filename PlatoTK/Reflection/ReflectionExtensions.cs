@@ -37,7 +37,7 @@ namespace PlatoTK.Reflection
             return (T)t.GetField(field, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(isStatic ? null : obj);
         }
 
-        public static void SetFieldValue(this object obj, object value, string field, bool isStatic = false)
+        public static void SetFieldValue(this object obj, string field, object value, bool isStatic = false)
         {
             Type t = obj is Type ? (Type)obj : obj.GetType();
             if (obj is Type)

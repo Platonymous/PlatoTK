@@ -14,7 +14,7 @@ namespace PlatoTK.Reflection
             }
             set
             {
-                Target.SetFieldValue(value, name, Target is Type);
+                Target.SetFieldValue(name, value, Target is Type);
             }
         }
 
