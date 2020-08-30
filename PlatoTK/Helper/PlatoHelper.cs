@@ -4,6 +4,7 @@ using PlatoTK.Network;
 using PlatoTK.UI;
 using StardewValley;
 using System;
+using PlatoTK.Events;
 
 namespace PlatoTK
 {
@@ -11,6 +12,20 @@ namespace PlatoTK
     {
         public ISharedDataHelper SharedData { get; }
         public IHarmonyHelper Harmony { get; }
+
+        private static IPlatoEventsHelperInternal _eventsInternal = null;
+        internal static IPlatoEventsHelperInternal EventsInternal
+        {
+            get
+            {
+                if (_eventsInternal == null)
+                    _eventsInternal = new PlatoEventsHelper();
+
+                return _eventsInternal;
+            }
+        }
+
+        public IPlatoEventsHelper Events => EventsInternal;
 
         public IContentHelper Content { get; }
 
