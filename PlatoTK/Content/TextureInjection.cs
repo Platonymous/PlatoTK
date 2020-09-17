@@ -1,10 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PlatoTK.Content
 {
@@ -17,9 +12,8 @@ namespace PlatoTK.Content
             InjectionMethod method,
             Rectangle? sourceArea = null,
             Rectangle? targetArea = null,
-            string conditions = "",
-            IConditionsProvider provider = null)
-            : base(helper, assetName, value, method, sourceArea, targetArea, conditions, provider)
+            string conditions = "")
+            : base(helper, assetName, value, method, sourceArea, targetArea, conditions)
         {
         }
     }

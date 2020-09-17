@@ -19,9 +19,8 @@ namespace PlatoTK.Content
             InjectionMethod method,
             Rectangle? sourceArea = null,
             Rectangle? targetArea = null,
-            string conditions = "",
-            IConditionsProvider provider = null)
-            : base(helper, assetName, value, method, conditions, provider)
+            string conditions = "")
+            : base(helper, assetName, value, method, conditions)
         {
             SourceArea = sourceArea;
             TargetArea = targetArea;

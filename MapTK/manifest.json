@@ -1,0 +1,19 @@
+﻿{
+  "Name": "MapTK",
+  "Author": "Platonymous",
+  "Version": "1.0.0",
+  "Description": "Map Toolkit",
+  "UniqueID": "Platonymous.MapTK",
+  "EntryDll": "MapTK.dll",
+  "MinimumApiVersion": "2.11",
+  "UpdateKeys": [ "Nexus:" ],
+  "Dependencies": [
+    {
+      "UniqueID": "Platonymous.PlatoTK",
+      "MinimumVersion": "1.4.0"
+    },
+    {
+      "UniqueID": "Pathoschild.ContentPatcher"
+    }
+  ]
+}

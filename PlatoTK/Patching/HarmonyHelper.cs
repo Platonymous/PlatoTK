@@ -25,23 +25,12 @@ namespace PlatoTK.Patching
             if (TracedObjects == null)
             {
                 TracedObjects = new HashSet<TracedObject>();
-                Helper.ModHelper.Events.GameLoop.ReturnedToTitle += GameLoop_ReturnedToTitle;
+                Plato.ModHelper.Events.GameLoop.ReturnedToTitle += GameLoop_ReturnedToTitle;
             }
 
             if (HarmonyInstance == null)
-                HarmonyInstance = HarmonyInstance.Create($"Plato.HarmonyHelper.{Helper.ModHelper.ModRegistry.ModID}");
-        }
+                HarmonyInstance = HarmonyInstance.Create($"Plato.HarmonyHelper.{Plato.ModHelper.ModRegistry.ModID}");
 
-        public void RegisterTileAction(ITileAction tileAction)
-        {
-            GameLocationPatches.InitializePatch();
-            if (!GameLocationPatches.TileActions.Contains(tileAction))
-                GameLocationPatches.TileActions.Add(tileAction);
-        }
-
-        public void RegisterTileAction(Action<ITileActionTrigger> handler, params string[] trigger)
-        {
-            RegisterTileAction(new TileAction(handler, trigger));
         }
 
         public Texture2D GetDrawHandle(string id, Func<ITextureDrawHandler, bool> handler, Texture2D texture)
@@ -70,14 +59,14 @@ namespace PlatoTK.Patching
 
         public void PatchTileDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, int index, int tileWidth = 16, int tileHeight = 16)
         {
-            id = $"{Helper.ModHelper.ModRegistry.ModID}.{id}";
+            id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
             PatchAreaDraw(id, targetTexture, patch, sourceRectangle, Game1.getSourceRectForStandardTileSheet(targetTexture(), index, tileWidth, tileHeight));
         }
 
         public void PatchAreaDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Rectangle? targetTileArea)
         {
-            id = $"{Helper.ModHelper.ModRegistry.ModID}.{id}";
+            id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
             SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, patch, targetTileArea.HasValue ? () => targetTileArea.Value : (Func<Rectangle>)null, sourceRectangle));
             SpriteBatchPatches.InitializePatch();
@@ -85,7 +74,7 @@ namespace PlatoTK.Patching
 
         public void PatchTileDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Func<int> getIndex, int tileWidth = 16, int tileHeight = 16)
         {
-            id = $"{Helper.ModHelper.ModRegistry.ModID}.{id}";
+            id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
             SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, patch, () => Game1.getSourceRectForStandardTileSheet(targetTexture(), getIndex(), tileWidth, tileHeight), sourceRectangle));
             SpriteBatchPatches.InitializePatch();
@@ -93,7 +82,7 @@ namespace PlatoTK.Patching
 
         public void PatchAreaDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Func<Rectangle> getTargetTileArea)
         {
-            id = $"{Helper.ModHelper.ModRegistry.ModID}.{id}";
+            id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
             SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, patch, getTargetTileArea, sourceRectangle));
             SpriteBatchPatches.InitializePatch();
@@ -107,7 +96,7 @@ namespace PlatoTK.Patching
         {
             foreach (var obj in TracedObjects)
                 if (obj.Target is ILinked linked)
-                    linked.OnUnLink(Helper, obj.Original);
+                    linked.OnUnLink(Plato, obj.Original);
 
             TracedObjects.Clear();
         }
@@ -118,7 +107,7 @@ namespace PlatoTK.Patching
             {
                 bool remove = (o.Original == original || original == null) && (o.Target == target || target == null);
                 if(remove && o.Target is ILinked linked)
-                        linked.OnUnLink(Helper, o.Original);
+                        linked.OnUnLink(Plato, o.Original);
 
                 return remove;
             });
@@ -140,7 +129,7 @@ namespace PlatoTK.Patching
             if (LinkedConstructors.Any(l => l.FromType == typeof(TOriginal) && l.ToType == typeof(TTarget)))
                 return;
 
-            LinkedConstructors.Add(new TypeForwarding(typeof(TOriginal), typeof(TTarget), Helper, null));
+            LinkedConstructors.Add(new TypeForwarding(typeof(TOriginal), typeof(TTarget), Plato, null));
 
             foreach (ConstructorInfo constructor in 
                 typeof(TOriginal)
@@ -174,7 +163,7 @@ namespace PlatoTK.Patching
             if (TracedTypes.Any(tt => tt.FromType == originalType && tt.ToType == targetType))
                 return;
 
-            TracedTypes.Add(new TypeForwarding(originalType, targetType, Helper, targetForAllInstances));
+            TracedTypes.Add(new TypeForwarding(originalType, targetType, Plato, targetForAllInstances));
 
             foreach (MethodInfo tmethod in AccessTools.GetDeclaredMethods(targetType))
             {
@@ -241,8 +230,8 @@ namespace PlatoTK.Patching
 
             if (target is ILinked linked2)
             {
-                linked2.Link = new Link(original, target, Helper);
-                linked2.OnLink(Helper, original);
+                linked2.Link = new Link(original, target, Plato);
+                linked2.OnLink(Plato, original);
             }
 
             if (TracedObjects.Any(t => t.Original == original && t.Target == target))
@@ -251,7 +240,7 @@ namespace PlatoTK.Patching
             Type targetType = target.GetType();
             Type originalType = original.GetType();
 
-            TracedObjects.Add(new TracedObject(original, target, Helper));
+            TracedObjects.Add(new TracedObject(original, target, Plato));
 
             LinkTypes(originalType, targetType, null);
             return true;

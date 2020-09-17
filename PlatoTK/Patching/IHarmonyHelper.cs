@@ -43,9 +43,5 @@ namespace PlatoTK.Patching
         Texture2D GetDrawHandle<TData>(string id, TData data, Func<ITextureDrawHandler<TData>, bool> handler, Texture2D texture);
 
         Texture2D GetDrawHandle<TData>(string id, TData data, Func<ITextureDrawHandler, bool> handler, int width, int height, GraphicsDevice graphicsDevice = null);
-
-        void RegisterTileAction(ITileAction tileAction);
-
-        void RegisterTileAction(Action<ITileActionTrigger> handler, params string[] trigger);
     }
 }

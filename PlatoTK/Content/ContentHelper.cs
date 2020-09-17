@@ -21,12 +21,12 @@ namespace PlatoTK.Content
 
         public ISaveIndex GetSaveIndex(string id, Func<IDictionary<int, string>> loadData, Func<ISaveIndexHandle, bool> validateValue, Action<ISaveIndexHandle> injectValue, int minIndex = 13000)
         {
-            return new SaveIndex(id, loadData, validateValue, injectValue, Helper, minIndex);
+            return new SaveIndex(id, loadData, validateValue, injectValue, Plato, minIndex);
         }
 
         public ISaveIndex GetSaveIndex(string id, string dataSource, Func<ISaveIndexHandle, bool> validateValue, Action<ISaveIndexHandle> injectValue, int minIndex = 13000)
         {
-            return new SaveIndex(id, dataSource, validateValue, injectValue, Helper, minIndex);
+            return new SaveIndex(id, dataSource, validateValue, injectValue, Plato, minIndex);
         }
     }
 }

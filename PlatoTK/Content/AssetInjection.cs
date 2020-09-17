@@ -1,4 +1,5 @@
 ﻿using System;
+using PlatoTK;
 
 namespace PlatoTK.Content
 {
@@ -16,9 +17,7 @@ namespace PlatoTK.Content
 
         private bool MatchesConditions;
 
-        private readonly IConditionsProvider ConditionsProvider;
-
-        public bool HasConditions => !(string.IsNullOrEmpty(Conditions) || ConditionsProvider == null);
+        public bool HasConditions => !string.IsNullOrEmpty(Conditions);
 
         public bool ConditionsMet
         {
@@ -27,7 +26,7 @@ namespace PlatoTK.Content
                 if (!HasConditions)
                     MatchesConditions = true;
                 else if (!Subscribed)
-                    MatchesConditions = ConditionsProvider.CheckConditions(Conditions, this);
+                    MatchesConditions = Helper.CheckConditions(Conditions, this);
 
                 return MatchesConditions;
             }
@@ -46,22 +45,16 @@ namespace PlatoTK.Content
             IPlatoHelper helper,
             string assetName,
             InjectionMethod method,
-            string conditions = "",
-            IConditionsProvider provider = null)
+            string conditions = "")
         {
             Method = method;
             Helper = helper;
             AssetName = assetName;
             Conditions = conditions;
-            ConditionsProvider = provider ?? new EventConditionsProvider();
-            Subscribed = false;
             MatchesConditions = true;
 
             if (HasConditions)
-            {
-                Subscribed = provider.TrySubscribeToChange(Conditions, this, ConditionsChanged, out bool state);
-                MatchesConditions = state;
-            }
+                MatchesConditions = Helper.CheckConditions(Conditions,this);
         }
     }
 
@@ -79,9 +72,8 @@ namespace PlatoTK.Content
             string assetName,
             TAsset value,
             InjectionMethod method,
-            string conditions = "",
-            IConditionsProvider provider = null)
-            : base(helper,assetName,method,conditions,provider)
+            string conditions = "")
+            : base(helper,assetName,method,conditions)
         {
             Value = value;
         }

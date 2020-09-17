@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using BmFont;
+using Harmony;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PlatoTK.UI.Components;
 using PlatoTK.UI.Styles;
 using StardewValley.Menus;
@@ -33,7 +36,7 @@ namespace PlatoTK.UI
 
         public IWrapper LoadFromFile(string layoutPath, string id = "")
         {
-            IWrapper wrapper = new Wrapper(Helper);
+            IWrapper wrapper = new Wrapper(Plato);
             wrapper.ParseAttribute("Id", id);
             string xml = File.ReadAllText(layoutPath);
             XDocument doc = XDocument.Parse(xml);
@@ -44,12 +47,12 @@ namespace PlatoTK.UI
 
         public IClickableMenu OpenMenu(IWrapper wrapper)
         {
-            return new UIMenu(Helper, wrapper);
+            return new UIMenu(Plato, wrapper);
         }
 
         private IComponent ParseElements(IComponent parent, XElement element)
         {
-            if (Helper.UI.TryGetComponent(element.Name.LocalName, out IComponent component))
+            if (Plato.UI.TryGetComponent(element.Name.LocalName, out IComponent component))
             {
                 parent.AddChild(component);
                 foreach (var attr in element.Attributes())
@@ -79,7 +82,7 @@ namespace PlatoTK.UI
         {
             if (StylesLoaded.FirstOrDefault(s => s.PropertyNames.Any(p => p.ToLower() == propertyName.ToLower())) is IStyle loaded)
             {
-                style = loaded.New(Helper, option);
+                style = loaded.New(Plato, option);
                 return true;
             }
 
@@ -91,7 +94,7 @@ namespace PlatoTK.UI
         {
             if (ComponentsLoaded.FirstOrDefault(s => s.ComponentName == componentName) is IComponent loaded)
             {
-                component = loaded.New(Helper);
+                component = loaded.New(Plato);
                 return true;
             }
 
@@ -99,6 +102,54 @@ namespace PlatoTK.UI
             return false;
         }
 
-        
+        public List<Texture2D> LoadFontPages(FontFile fontFile, string assetName)
+        {
+            return fontFile.Pages.Select(p => Plato.ModHelper.Content.Load<Texture2D>(Path.Combine(Path.GetDirectoryName(assetName), p.File))).ToList();
+        }
+
+        public FontFile LoadFontFile(string assetName)
+        {
+            return FontLoader.Parse(Plato.ModHelper.Content.Load<string>(assetName));
+        }
+
+        public Dictionary<char, FontChar> ParseCharacterMap(FontFile fontFile)
+        {
+            return fontFile.Chars.ToDictionary(c => (char)c.ID, c => c);
+        }
+
+        public SpriteFont LoadSpriteFont(string assetName)
+        {
+            Texture2D texture = Plato.ModHelper.Content.Load<Texture2D>(Path.Combine(Path.GetDirectoryName(assetName), Path.GetFileNameWithoutExtension(assetName) + ".png"));
+            SpriteFontData data = Plato.ModHelper.Content.Load<SpriteFontData>(assetName);
+            object[] parameter = new object[]{
+                    texture,
+                    data.Glyphs.Values
+                    .OrderBy(g => data.Characters.IndexOf(g.Character))
+                    .Select(g => g.BoundsInTexture).ToList(),
+                    data.Glyphs.Values
+                    .OrderBy(g => data.Characters.IndexOf(g.Character))
+                    .Select(g => g.Cropping).ToList(),
+                    data.Characters,
+                    data.LineSpacing,
+                    data.Spacing,
+                    data.Glyphs.Values
+                    .OrderBy(g => data.Characters.IndexOf(g.Character))
+                    .Select(g => new Vector3(g.LeftSideBearing, g.Width, g.RightSideBearing)).ToList(),
+                    data.DefaultCharacter 
+            };
+
+            return (SpriteFont)AccessTools.Constructor(
+                  typeof(SpriteFont), new[] {
+                      typeof(Texture2D),
+                      typeof(List<Rectangle>),
+                      typeof(List<Rectangle>),
+                      typeof(List<char>),
+                      typeof(int),
+                      typeof(float),
+                      typeof(List<Vector3>),
+                      typeof(char?)}
+                ).Invoke(parameter);
+        }
+
     }
 }

@@ -14,10 +14,9 @@ namespace PlatoTK.Content
             string assetName, 
             string value, 
             InjectionMethod method,
-            string conditions = "", 
-            IConditionsProvider provider = null
+            string conditions = ""
             )
-            : base(helper,assetName,value, method,conditions,provider)
+            : base(helper,assetName,value, method,conditions)
         {
            
         }
@@ -36,9 +35,8 @@ namespace PlatoTK.Content
             TKey key, 
             string value,
             InjectionMethod method, 
-            string conditions = "", 
-            IConditionsProvider provider = null)
-            : base(helper, assetName, value, method, conditions, provider)
+            string conditions = "")
+            : base(helper, assetName, value, method, conditions)
         {
             Key = key;
         }
@@ -49,9 +47,8 @@ namespace PlatoTK.Content
             TKey key,
             InjectionMethod method,
            string conditions = "",
-           IConditionsProvider provider = null,
            params string[] values)
-            : this(helper, assetName, key, string.Join(Utils.Serialization.innerValueSeperator.ToString(), values), method, conditions, provider)
+            : this(helper, assetName, key, string.Join(Utils.Serialization.innerValueSeperator.ToString(), values), method, conditions)
         {
 
         }

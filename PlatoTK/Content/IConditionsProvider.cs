@@ -8,8 +8,8 @@ namespace PlatoTK.Content
 {
     public interface IConditionsProvider
     {
+        string Id { get; }
+        bool CanHandleConditions(string conditions);
         bool CheckConditions(string conditions, object caller);
-
-        bool TrySubscribeToChange(string conditions, object caller, Action<string, bool> OnChange, out bool state);
     }
 }

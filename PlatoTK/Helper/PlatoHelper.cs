@@ -5,27 +5,24 @@ using PlatoTK.UI;
 using StardewValley;
 using System;
 using PlatoTK.Events;
+using System.Collections.Generic;
+using System.Linq;
+using PlatoTK.Lua;
 
 namespace PlatoTK
 {
     internal class PlatoHelper : IPlatoHelper
     {
+        internal static readonly List<IConditionsProvider> ConditionsProvider = new List<IConditionsProvider>();
         public ISharedDataHelper SharedData { get; }
         public IHarmonyHelper Harmony { get; }
 
-        private static IPlatoEventsHelperInternal _eventsInternal = null;
-        internal static IPlatoEventsHelperInternal EventsInternal
-        {
-            get
-            {
-                if (_eventsInternal == null)
-                    _eventsInternal = new PlatoEventsHelper();
+        public ILuaHelper Lua { get; }
 
-                return _eventsInternal;
-            }
-        }
-
+        private static readonly EventConditionsProvider DefaultEventsConditionsProvider = new EventConditionsProvider();
         public IPlatoEventsHelper Events => EventsInternal;
+
+        internal static IPlatoEventsHelper EventsInternal { get; set; }
 
         public IContentHelper Content { get; }
 
@@ -40,6 +37,71 @@ namespace PlatoTK
             Harmony = new HarmonyHelper(this);
             Content = new ContentHelper(this);
             UI = new UIHelper(this);
+            Lua = new LuaHelper(this);
+        }
+
+        public bool CheckConditions(string conditions, object caller)
+        {
+            if (string.IsNullOrEmpty(conditions))
+                return true;
+
+            foreach (string condition in conditions.Replace(@"\/", "--div--").Split('/'))
+                if(TryCheckConditions(condition.Replace("--div--", "/"), caller, out bool result))
+                    return result;
+
+            return true;
+        }
+
+        internal static bool TryCheckConditions(string conditions, object caller, out bool result, bool includeDefault = true)
+        {
+            if (string.IsNullOrEmpty(conditions))
+            {
+                result = true;
+                return true;
+            }
+
+            bool compare = true;
+            conditions = conditions.Trim();
+
+            string trigger = conditions.Split(' ')[0];
+            if (trigger[0] == '!')
+            {
+                compare = false;
+                trigger = trigger.Substring(1);
+            }
+
+            if (trigger.ToLower() == "true" || trigger.ToLower() == "false")
+            {
+                result = conditions.ToLower() == "true";
+                result = compare == result;
+                return true;
+            }
+
+            if (ConditionsProvider.FirstOrDefault(c => c.CanHandleConditions(trigger)) is IConditionsProvider cp)
+            {
+                result = cp.CheckConditions(conditions, caller);
+                result = compare == result;
+
+                return true;
+            }
+
+            if (includeDefault)
+            {
+                result = DefaultEventsConditionsProvider.CheckConditions(conditions, caller);
+                result = compare == result;
+                return true;
+            }
+
+            result = true;
+            result = compare == result;
+
+            return false;
+        }
+
+        public void AddConditionsProvider(IConditionsProvider provider)
+        {
+            if (ConditionsProvider.Any(p => p.Id == provider.Id))
+                ConditionsProvider.Add(provider);
         }
 
         public DelayedAction SetDelayedAction(int delay, Action action)

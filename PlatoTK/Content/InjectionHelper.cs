@@ -10,7 +10,7 @@ namespace PlatoTK.Content
     {
         private static readonly HashSet<AssetInjector> Injected = new HashSet<AssetInjector>();
 
-        private AssetInjector Injector => Injected.FirstOrDefault(i => i.Mod == Helper.ModHelper.ModRegistry.ModID);
+        private AssetInjector Injector => Injected.FirstOrDefault(i => i.Mod == Plato.ModHelper.ModRegistry.ModID);
 
         public InjectionHelper(IPlatoHelper helper)
             : base(helper)
@@ -19,39 +19,39 @@ namespace PlatoTK.Content
                 Injected.Add(new AssetInjector(helper));
         }
 
-        public void InjectLoad<TAsset>(string assetName, TAsset asset, string conditions = "", IConditionsProvider provider = null)
+        public void InjectLoad<TAsset>(string assetName, TAsset asset, string conditions = "")
         {
-            Injector.AddInjection(new ObjectInjection<TAsset>(Helper, assetName, asset, InjectionMethod.Load, conditions, provider));
+            Injector.AddInjection(new ObjectInjection<TAsset>(Plato, assetName, asset, InjectionMethod.Load, conditions));
         }
         
-        public void InjectDataInsert(string assetName, int key, string value, string conditions = "", IConditionsProvider provider = null)
+        public void InjectDataInsert(string assetName, int key, string value, string conditions = "")
         {
-            Injector.AddInjection(new DataInjection<int>(Helper,assetName,key, value, InjectionMethod.Replace, conditions,provider));
+            Injector.AddInjection(new DataInjection<int>(Plato,assetName,key, value, InjectionMethod.Replace, conditions));
         }
 
-        public void InjectDataPatch(string assetName, int key, string conditions = "", IConditionsProvider provider = null, params string[] values)
+        public void InjectDataPatch(string assetName, int key, string conditions = "", params string[] values)
         {
-            Injector.AddInjection(new DataInjection<int>(Helper, assetName, key, InjectionMethod.Merge, conditions, provider, values));
+            Injector.AddInjection(new DataInjection<int>(Plato, assetName, key, InjectionMethod.Merge, conditions, values));
         }
 
-        public void InjectDataInsert(string assetName, string key, string value, string conditions = "", IConditionsProvider provider = null)
+        public void InjectDataInsert(string assetName, string key, string value, string conditions = "")
         {
-            Injector.AddInjection(new DataInjection<string>(Helper, assetName, key, value, InjectionMethod.Replace, conditions, provider));
+            Injector.AddInjection(new DataInjection<string>(Plato, assetName, key, value, InjectionMethod.Replace, conditions));
         }
 
-        public void InjectDataPatch(string assetName, string key, string conditions = "", IConditionsProvider provider = null, params string[] values)
+        public void InjectDataPatch(string assetName, string key, string conditions = "",params string[] values)
         {
-            Injector.AddInjection(new DataInjection<string>(Helper, assetName, key, InjectionMethod.Merge, conditions, provider, values));
+            Injector.AddInjection(new DataInjection<string>(Plato, assetName, key, InjectionMethod.Merge, conditions, values));
         }
 
-        public void InjectPatch(string assetName, Texture2D asset, bool overlay = false, Rectangle? sourceArea = null, Rectangle? targetArea = null, string conditions = "", IConditionsProvider provider = null)
+        public void InjectPatch(string assetName, Texture2D asset, bool overlay = false, Rectangle? sourceArea = null, Rectangle? targetArea = null, string conditions = "")
         {
-            Injector.AddInjection(new TextureInjection(Helper, assetName, asset, overlay ? InjectionMethod.Overlay : InjectionMethod.Merge, sourceArea, targetArea, conditions, provider));
+            Injector.AddInjection(new TextureInjection(Plato, assetName, asset, overlay ? InjectionMethod.Overlay : InjectionMethod.Merge, sourceArea, targetArea, conditions));
         }
 
-        public void InjectPatch(string assetName, Map asset, Rectangle? sourceArea = null, Rectangle? targetArea = null, string conditions = "", IConditionsProvider provider = null, bool removeEmpty = false)
+        public void InjectPatch(string assetName, Map asset, Rectangle? sourceArea = null, Rectangle? targetArea = null, string conditions = "", bool removeEmpty = false)
         {
-            Injector.AddInjection(new MapInjection(Helper, assetName, asset, removeEmpty ? InjectionMethod.Merge : InjectionMethod.Overlay, sourceArea, targetArea, conditions, provider));
+            Injector.AddInjection(new MapInjection(Plato, assetName, asset, removeEmpty ? InjectionMethod.Merge : InjectionMethod.Overlay, sourceArea, targetArea, conditions));
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
@@ -21,8 +22,11 @@ namespace PlatoTK.Patching
 
         internal static DialogueCall LastPaginatedDialogue;
 
-        internal static void InitializePatch()
+        internal static IPlatoHelper Plato { get; set; }
+
+        internal static void InitializePatch(IPlatoHelper helper)
         {
+            Plato = helper;
             if (_patched)
                 return;
 
@@ -41,6 +45,21 @@ namespace PlatoTK.Patching
 
             List<MethodInfo> questionAsked = new List<MethodInfo>(questionLocationTypes.Select(t => AccessTools.Method(t, "answerDialogue")));
 
+            var performTouchAction = new[] { 
+                AccessTools.DeclaredMethod(typeof(GameLocation), "performTouchAction"), 
+                AccessTools.DeclaredMethod(typeof(MovieTheater), "performTouchAction"), 
+                AccessTools.DeclaredMethod(typeof(Desert), "performTouchAction") };
+
+            var performAction = new[] {
+                AccessTools.DeclaredMethod(typeof(GameLocation), "performAction"),
+                AccessTools.DeclaredMethod(typeof(MovieTheater), "performAction"),
+                AccessTools.DeclaredMethod(typeof(CommunityCenter), "performAction"),
+                AccessTools.DeclaredMethod(typeof(FarmHouse), "performAction"),
+                AccessTools.DeclaredMethod(typeof(ManorHouse), "performAction"),
+                AccessTools.DeclaredMethod(typeof(LibraryMuseum), "performAction"),
+                AccessTools.DeclaredMethod(typeof(Town), "performAction"),
+            };
+
             var harmony = HarmonyInstance.Create($"Plato.QuestionPatches");
             harmony.Patch(questionRaised, prefix: new HarmonyMethod(AccessTools.Method(typeof(EventPatches), nameof(DialogueBox))));
             
@@ -53,6 +72,103 @@ namespace PlatoTK.Patching
             harmony.Patch(channelSelected, prefix: new HarmonyMethod(AccessTools.Method(typeof(EventPatches), nameof(SelectChannel))));
             harmony.Patch(tvAction, prefix: new HarmonyMethod(AccessTools.Method(typeof(EventPatches), nameof(SetIsTv))));
             harmony.Patch(tvAction, postfix: new HarmonyMethod(AccessTools.Method(typeof(EventPatches), nameof(UnsetIsTV))));
+        
+            harmony.Patch(AccessTools.Method(typeof(Event), nameof(Event.tryEventCommand)),
+                new HarmonyMethod(typeof(EventPatches), nameof(TryEventCommandPre)));
+
+            harmony.Patch(AccessTools.Method(typeof(Event), nameof(Event.tryEventCommand)), null,
+            new HarmonyMethod(typeof(EventPatches), nameof(TryEventCommandPost)));
+
+            foreach (var ta in performTouchAction)
+                harmony.Patch(ta, prefix: new HarmonyMethod(AccessTools.Method(typeof(EventPatches), nameof(PerformTouchAction))));
+            foreach (var a in performAction)
+                harmony.Patch(a, prefix: new HarmonyMethod(AccessTools.Method(typeof(EventPatches), nameof(PerformAction))));
+
+            var checkEventPreconditions = AccessTools.Method(typeof(GameLocation), "checkEventPrecondition");
+            harmony.Patch(checkEventPreconditions, prefix: new HarmonyMethod(typeof(EventPatches), nameof(CheckEventConditions)));
+        }
+
+        internal static bool CheckEventConditions(ref string precondition, ref int __result)
+        {
+            if (precondition.StartsWith("9999999/"))
+                return true;
+
+            string[] conditions = precondition.Split('/').ToArray();
+            string t = "l PlatoTK.NoFlag";
+            if (Game1.MasterPlayer.mailReceived.Contains("PlatoTK.NoFlag"))
+                Game1.MasterPlayer.mailReceived.Remove("PlatoTK.NoFlag");
+            
+            for (int i = 1; i < conditions.Length; i++)
+                if (PlatoHelper.TryCheckConditions(conditions[i], Game1.currentLocation, out bool result,false))
+                    if(result)
+                        conditions[i] = t;
+                    else
+                    {
+                        __result = -1;
+                        return false;
+                    }
+
+            precondition = string.Join("/", conditions);
+            return true;
+        }
+
+        internal static bool PerformTouchAction(GameLocation __instance, string fullActionString, Vector2 playerStandingPosition)
+        {
+            bool result = true;
+
+            if (fullActionString.Contains(';'))
+            {
+                foreach (var a in fullActionString.Split(';'))
+                    __instance.performTouchAction(fullActionString, playerStandingPosition);
+
+                return false;
+            }
+
+            Plato.Events.HandleTileAction(fullActionString.Split(' '), Game1.player, __instance, new Point((int)Game1.player.getTileX(), (int)Game1.player.getTileY()), (b) => result = !b);
+            return result;
+        }
+
+        internal static bool PerformAction(GameLocation __instance, string action, Farmer who, xTile.Dimensions.Location tileLocation, ref bool __result)
+        {
+            bool result = true;
+            bool returnValue = false;
+
+            if (action.Contains(';'))
+            {
+                foreach (var a in action.Split(';'))
+                    returnValue = returnValue || __instance.performAction(a, who, tileLocation);
+
+                return false;
+            }
+
+            Plato.Events.HandleTileAction(action.Split(' '), who, __instance, new Point(tileLocation.X, tileLocation.Y), (b) =>
+            {
+                result = !b;
+                returnValue = true;
+            });
+
+            if(returnValue)
+                __result = returnValue;
+
+            return result;
+        }
+
+        internal static bool TryEventCommandPre(Event __instance, GameLocation location, GameTime time, string[] split)
+        {
+            if (split.Length == 0)
+                return true;
+
+            bool result = true;
+            Plato.Events.HandleEventCommand(split, __instance, time, location, () => result = false, false);
+            return result;
+        }
+
+        internal static void TryEventCommandPost(Event __instance, GameLocation location, GameTime time, string[] split)
+        {
+            if (split.Length == 0)
+                return;
+
+            Plato.Events.HandleEventCommand(split, __instance, time, location, null, true);
         }
 
         internal static void SetIsTv()
@@ -68,7 +184,7 @@ namespace PlatoTK.Patching
         internal static bool SelectChannel(TV __instance, string answer)
         {
             bool result = true;
-            PlatoHelper.EventsInternal.HandleChannelSelection(answer, __instance, () => result = false);
+            Plato.Events.HandleChannelSelection(answer, __instance, () => result = false);
             return result;
         }
 
@@ -92,7 +208,7 @@ namespace PlatoTK.Patching
                 choices.Remove(leave);
 
             if(!paginate)
-            PlatoHelper.EventsInternal.HandleQuestion(question, choices, (q) => question = q, (r) =>
+                Plato.Events.HandleQuestion(question, choices, (q) => question = q, (r) =>
              {
                  if (!choices.Contains(r))
                      choices.Add(r);
@@ -147,7 +263,7 @@ namespace PlatoTK.Patching
 
             if (__instance is GameLocation location)
             {
-                PlatoHelper.EventsInternal.HandleAnswer(answer, () => result = false, location.lastQuestionKey);
+                Plato.Events.HandleAnswer(answer, () => result = false, location.lastQuestionKey);
 
                 if (!result)
                 {
@@ -158,6 +274,7 @@ namespace PlatoTK.Patching
 
             return result;
         }
+
     }
 
     internal class DialogueCall
@@ -178,4 +295,5 @@ namespace PlatoTK.Patching
             Game1.activeClickableMenu = new DialogueBox(Dialogue, Responses, Width);
         }
     }
+
 }

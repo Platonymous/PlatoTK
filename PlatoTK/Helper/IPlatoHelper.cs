@@ -5,6 +5,7 @@ using PlatoTK.UI;
 using StardewValley;
 using System;
 using PlatoTK.Events;
+using PlatoTK.Lua;
 
 namespace PlatoTK
 {
@@ -13,6 +14,7 @@ namespace PlatoTK
         ISharedDataHelper SharedData { get; }
         IHarmonyHelper Harmony { get; }
         IContentHelper Content { get; }
+        ILuaHelper Lua { get; }
 
         IPlatoEventsHelper Events { get; }
 
@@ -22,5 +24,8 @@ namespace PlatoTK
 
         void SetDelayedUpdateAction(int delay, Action action);
         void SetTickDelayedUpdateAction(int delay, Action action);
+        bool CheckConditions(string conditions, object caller);
+
+        void AddConditionsProvider(IConditionsProvider provider);
     }
 }

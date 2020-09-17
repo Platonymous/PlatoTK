@@ -13,9 +13,8 @@ namespace PlatoTK.Content
             string assetName,
             object value,
             InjectionMethod method,
-            string conditions = "",
-            IConditionsProvider provider = null)
-            : base(helper, assetName, value, method, conditions, provider)
+            string conditions = "")
+            : base(helper, assetName, value, method, conditions)
         {
         }
     }
@@ -27,9 +26,8 @@ namespace PlatoTK.Content
             string assetName,
             T value,
             InjectionMethod method,
-            string conditions = "",
-            IConditionsProvider provider = null)
-            : base(helper, assetName, value, method, conditions, provider)
+            string conditions = "")
+            : base(helper, assetName, value, method, conditions)
         {
         }
     }

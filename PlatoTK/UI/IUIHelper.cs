@@ -1,7 +1,9 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using BmFont;
+using Microsoft.Xna.Framework.Graphics;
 using PlatoTK.UI.Components;
 using PlatoTK.UI.Styles;
 using StardewValley.Menus;
+using System.Collections.Generic;
 
 namespace PlatoTK.UI
 {
@@ -18,5 +20,13 @@ namespace PlatoTK.UI
         bool TryGetComponent(string componentName, out IComponent component);
 
         IClickableMenu OpenMenu(IWrapper wrapper);
+
+        List<Texture2D> LoadFontPages(FontFile fontFile, string assetName);
+
+        FontFile LoadFontFile(string assetName);
+
+        Dictionary<char, FontChar> ParseCharacterMap(FontFile fontFile);
+
+        SpriteFont LoadSpriteFont(string assetName);
     }
 }

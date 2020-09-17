@@ -8,11 +8,11 @@ namespace PlatoTK
 {
     internal abstract class InnerHelper
     {
-        protected readonly IPlatoHelper Helper;
+        protected readonly IPlatoHelper Plato;
 
         public InnerHelper(IPlatoHelper helper)
         {
-            Helper = helper;
+            Plato = helper;
         }
     }
 }

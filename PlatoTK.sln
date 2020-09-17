@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PlatoTK", "PlatoTK\PlatoTK.csproj", "{064DD1EB-BA99-4B5C-884D-2FA946DFD76D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapTK", "MapTK\MapTK.csproj", "{33362911-958C-4A34-A958-8A55459CAF7F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,6 +17,10 @@ Global
 		{064DD1EB-BA99-4B5C-884D-2FA946DFD76D}.Debug|x86.Build.0 = Debug|Any CPU
 		{064DD1EB-BA99-4B5C-884D-2FA946DFD76D}.Release|x86.ActiveCfg = Release|Any CPU
 		{064DD1EB-BA99-4B5C-884D-2FA946DFD76D}.Release|x86.Build.0 = Release|Any CPU
+		{33362911-958C-4A34-A958-8A55459CAF7F}.Debug|x86.ActiveCfg = Debug|x86
+		{33362911-958C-4A34-A958-8A55459CAF7F}.Debug|x86.Build.0 = Debug|x86
+		{33362911-958C-4A34-A958-8A55459CAF7F}.Release|x86.ActiveCfg = Release|x86
+		{33362911-958C-4A34-A958-8A55459CAF7F}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
