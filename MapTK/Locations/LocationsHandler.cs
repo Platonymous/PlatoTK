@@ -95,10 +95,13 @@ namespace MapTK.Locations
             var locations = Helper.Content.Load<Dictionary<string, LocationData>>(LocationsDictionary, ContentSource.GameContent);
             var result = new List<GameLocation>();
             locations.Values
-                .Where(l => !Game1.locations.Any(g => g.Name == l.Name))
+                .Where(l => !Game1.locations.Any(g => g.Name == l.Name) || l.Save)
                 .ToList()
                 .ForEach(l =>
                 {
+                    if (l.Save && Game1.locations.FirstOrDefault(g => g.Name == l.Name) is GameLocation gl)
+                        Game1.locations.Remove(gl);
+
                     var newLocation = GetNewLocation(l);
                     Game1.locations.Add(newLocation);
                     result.Add(newLocation);
@@ -111,37 +114,38 @@ namespace MapTK.Locations
         {
             string type = data.Type.ToLower();
 
-            if(data.Save)
-            try
-            {
-                if (Helper.Data.ReadSaveData<LocationSaveData>($"{LocationSaveData}") is LocationSaveData saveDataStore 
-                    && saveDataStore.Locations.ContainsKey(data.Name) && saveDataStore.Locations[data.Name] is string savedata
-                    && !string.IsNullOrEmpty(savedata))
+            if (data.Save)
+                try
                 {
-                    XmlSerializer serializer = null;
+                    if (Helper.Data.ReadSaveData<LocationSaveData>($"{LocationSaveData}") is LocationSaveData saveDataStore
+                        && saveDataStore.Locations.ContainsKey(data.Name) && saveDataStore.Locations[data.Name] is string savedata
+                        && !string.IsNullOrEmpty(savedata))
+                    {
+                        XmlSerializer serializer = null;
 
-                    if (Type.GetType(data.Type) is Type customType)
-                        serializer = new XmlSerializer(customType, ExtraTypes);
-                    else
-                        serializer = new XmlSerializer(typeof(GameLocation), ExtraTypes);
+                        if (Type.GetType(data.Type) is Type customType)
+                            serializer = new XmlSerializer(customType, ExtraTypes);
+                        else
+                            serializer = new XmlSerializer(typeof(GameLocation), ExtraTypes);
 
-                    using (StringReader dataReader = new StringReader(savedata))
-                    using (var reader = XmlReader.Create(dataReader,SaveReaderSettings))
-                        if (serializer.Deserialize(reader) is GameLocation savedLocation)
-                            return savedLocation;
+                        using (StringReader dataReader = new StringReader(savedata))
+                        using (var reader = XmlReader.Create(dataReader, SaveReaderSettings))
+                            if (serializer.Deserialize(reader) is GameLocation savedLocation)
+                                return savedLocation;
+                    }
                 }
-            }catch
-            {
+                catch
+                {
 
-            }
+                }
 
             GameLocation result;
 
             switch (type)
             {
-                case "buildable": result = new BuildableGameLocation(data.MapPath, data.Name);break;
-                case "decoratable": result = new DecoratableLocation(data.MapPath, data.Name);break;
-                case "default": result = new GameLocation(data.MapPath, data.Name);break;
+                case "buildable": result = new BuildableGameLocation(data.MapPath, data.Name); break;
+                case "decoratable": result = new DecoratableLocation(data.MapPath, data.Name); break;
+                case "default": result = new GameLocation(data.MapPath, data.Name); break;
                 default:
                     {
                         if (Type.GetType(data.Type) is Type customType
@@ -158,7 +162,23 @@ namespace MapTK.Locations
 
             if (data.Greenhouse)
                 result?.isGreenhouse.Set(true);
-            
+
+            try
+            {
+                
+                if (data.Save
+                    && result is GameLocation
+                    && Helper.ModRegistry.IsLoaded("Platonymous.TMXLoader")
+                    && !Helper.ModRegistry.Get("Platonymous.TMXLoader").Manifest.Version.IsOlderThan("1.20.0")
+                    && Helper.ModRegistry.GetApi<ITMXLAPI>("Platonymous.TMXLoader") is ITMXLAPI api
+                    && api.TryGetSaveDataForLocation(result, out GameLocation tmxresult))
+                    return tmxresult;
+            }
+            catch
+            {
+
+            }
+
             return result;
         }
 

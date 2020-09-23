@@ -14,8 +14,6 @@ namespace PlatoTK.Events
 
         private readonly Action<bool> Callback;
 
-        private Tile _tile;
-
         public string FullString => string.Join(" ", Commands);
 
         public string[] Parameter => Commands.Skip(1).ToArray();
