@@ -42,14 +42,17 @@ namespace MapTK.FestivalSpots
                     .ToList()
                     .ForEach(key =>
                         npcData[key].Placements
-                        .Where(p => (e.Location.mapPath.Value.ToLower().EndsWith(p.Festival.ToLower()) && p.Phase.ToLower() == e.Parameter[0].ToLower()))
+                        .Where(p => (e.Location.mapPath.Value.ToLower().EndsWith(p.Festival.ToLower()) && (p.Phase == "All" || p.Phase.ToLower() == e.Parameter[0].ToLower())))
                         .ToList()
                         .ForEach((fpd) =>
                         {
                             if (npcData[key].NPC == "")
                                 npcData[key].NPC = key;
                             e.Event.actors.RemoveAll(a => a.Name == npcData[key].NPC);
-                            e.Event.CallAction("addActor", npcData[key].NPC, fpd.X, fpd.Y, fpd.Facing, e.Location);
+                            e.Event.actors.RemoveAll(a => a.getTileX() == fpd.X && a.getTileY() == fpd.Y);
+                            
+                            if(fpd.X != -1)
+                                e.Event.CallAction("addActor", npcData[key].NPC, fpd.X, fpd.Y, fpd.Facing, e.Location);
                         }));
             }
         }

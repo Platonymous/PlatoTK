@@ -37,6 +37,11 @@
     <Private>true</Private>
     <SpecificVersion>false</SpecificVersion>
   </Reference>
-  </ItemGroup>
+    <Reference Include="TMXTile">
+      <HintPath>$(GamePath)\smapi-internal\TMXTile.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>false</SpecificVersion>
+    </Reference>
+</ItemGroup>
 
 </Project>

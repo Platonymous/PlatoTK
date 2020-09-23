@@ -8,6 +8,10 @@
 
         public string Type { get; set; } = "default";
 
-        public string[] Options { get; } = new string[0];
+        public bool Save { get; set; } = false;
+
+        public bool Farm { get; set; } = false;
+
+        public bool Greenhouse { get; set; } = false;
     }
 }

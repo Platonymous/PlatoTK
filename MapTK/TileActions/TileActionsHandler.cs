@@ -186,12 +186,12 @@ namespace MapTK.TileActions
                             if (e.Tile != null && e.Tile.Properties.TryGetValue("@DropIn_Success", out PropertyValue value))
                                 location?.performAction(value.ToString(), who, new xTile.Dimensions.Location(e.Position.X, e.Position.Y));
                         }
-                        else if (e.Tile != null && e.Tile.Properties.TryGetValue("@DropIn_Fail", out PropertyValue value))
+                        else if (e.Tile != null && e.Tile.Properties.TryGetValue("@DropIn_Failure", out PropertyValue value))
                             location?.performAction(value.ToString(), who, new xTile.Dimensions.Location(e.Position.X, e.Position.Y));
 
                     }
                 }
-                else if(e.Tile != null && e.Tile.Properties.TryGetValue("@DropIn_Message", out PropertyValue value))
+                else if(e.Tile != null && e.Tile.Properties.TryGetValue("@DropIn_Default", out PropertyValue value))
                     (e.Location ?? Game1.currentLocation).performAction(value.ToString(), who, new xTile.Dimensions.Location(e.Position.X, e.Position.Y));
             }
         }
@@ -209,11 +209,7 @@ namespace MapTK.TileActions
         {
             if(e.Trigger == "ReloadMap")
             {
-                GameLocation l = (e.Location ?? Game1.currentLocation);
-                Plato.ModHelper.Content.InvalidateCache(l.mapPath.Value);
-                l?.reloadMap();
-                l?.resetForPlayerEntry();
-
+                Plato.Utilities.ReloadMap(e.Location);
                 e.TakeOver(true);
             }
         }
@@ -238,11 +234,16 @@ namespace MapTK.TileActions
             if (codeId == "this")
             {
                 string propertyId = parameter[1];
-
                 code = tile.Properties[$"@Lua_{propertyId}"].ToString();
+                
 
                 if (parameter.Length > 2)
                     function = parameter[2].ToString();
+                else
+                {
+                    code = $"function callthis(location,tile,layer) {code} end";
+                    function = "callthis";
+                }
             }
             else
             {
@@ -258,7 +259,7 @@ namespace MapTK.TileActions
             var lua = Plato.Lua.LoadLuaCode(code, inputDict);
 
             if (!string.IsNullOrEmpty(function))
-                lua.Call(lua.Globals[function], e);
+                lua.Call(lua.Globals[function], e.Location,Utility.PointToVector2(e.Position), e.Layer.Id,e);
 
             return lua;
         }

@@ -1,4 +1,5 @@
-﻿using PlatoTK;
+﻿using Harmony;
+using PlatoTK;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -20,7 +21,8 @@ namespace MapTK.Locations
     {
         const string LocationSaveData = @"MapTK.SaveData.Locations";
         internal const string LocationsDictionary = @"MapTK/Locations";
-        readonly Type[] ExtraTypes = new Type[24]
+        internal static IModHelper Helper;
+        readonly static Type[] ExtraTypes = new Type[24]
         {
             typeof(Tool),
             typeof(Duggy),
@@ -48,19 +50,17 @@ namespace MapTK.Locations
             typeof(TerrainFeature)
         };
 
-        readonly XmlWriterSettings SaveWriterSettings = new XmlWriterSettings()
+        readonly static XmlWriterSettings SaveWriterSettings = new XmlWriterSettings()
         {
             ConformanceLevel = ConformanceLevel.Auto,
             CloseOutput = true
         };
 
-        readonly XmlReaderSettings SaveReaderSettings = new XmlReaderSettings()
+        readonly static XmlReaderSettings SaveReaderSettings = new XmlReaderSettings()
         {
             ConformanceLevel = ConformanceLevel.Auto,
             CloseInput = true
         };
-
-        readonly IModHelper Helper;
 
         public LocationsHandler(IModHelper helper)
         {
@@ -70,8 +70,6 @@ namespace MapTK.Locations
 
 
             helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
-            helper.Events.GameLoop.SaveLoaded += InitializeNewLocations;
-            helper.Events.GameLoop.SaveCreated += InitializeNewLocations;
             helper.Events.GameLoop.Saving += GameLoop_Saving;
         }
 
@@ -79,21 +77,41 @@ namespace MapTK.Locations
         {
             var api = Helper.ModRegistry.GetApi<PlatoTK.APIs.IContentPatcher>("Pathoschild.ContentPatcher");
             api.RegisterToken(Helper.ModRegistry.Get(Helper.ModRegistry.ModID).Manifest, "Locations", new LocationsToken());
+
+            HarmonyInstance instance = HarmonyInstance.Create("Platonymous.MapTK.AddLocations");
+            instance.Patch(AccessTools.Method(typeof(SaveGame),nameof(SaveGame.loadDataToLocations)), prefix: new HarmonyMethod(typeof(LocationsHandler),nameof(GameLocationsPatch)));
         }
 
-        private void InitializeNewLocations(object sender, EventArgs e)
+        internal static void GameLocationsPatch(List<GameLocation> gamelocations)
         {
-            Helper.Content.Load<Dictionary<string,LocationData>>(LocationsDictionary,ContentSource.GameContent)
-                .Where(l => !Game1.locations.Any(g => g.Name == l.Value.Name))
-                .ToList()
-                .ForEach(l => Game1.locations.Add(GetNewLocation(l.Value)));
+            foreach (var location in InitializeNewLocations())
+                if (!gamelocations.Any(l => l.Name == location.Name))
+                    gamelocations.Add(location);
         }
 
-        private GameLocation GetNewLocation(LocationData data)
+        private static List<GameLocation> InitializeNewLocations()
+        {
+            Helper.Content.InvalidateCache(LocationsDictionary);
+            var locations = Helper.Content.Load<Dictionary<string, LocationData>>(LocationsDictionary, ContentSource.GameContent);
+            var result = new List<GameLocation>();
+            locations.Values
+                .Where(l => !Game1.locations.Any(g => g.Name == l.Name))
+                .ToList()
+                .ForEach(l =>
+                {
+                    var newLocation = GetNewLocation(l);
+                    Game1.locations.Add(newLocation);
+                    result.Add(newLocation);
+                });
+
+            return result;
+        }
+
+        internal static GameLocation GetNewLocation(LocationData data)
         {
             string type = data.Type.ToLower();
 
-            if(data.Options.Contains("save"))
+            if(data.Save)
             try
             {
                 if (Helper.Data.ReadSaveData<LocationSaveData>($"{LocationSaveData}") is LocationSaveData saveDataStore 
@@ -135,10 +153,10 @@ namespace MapTK.Locations
                     }
             }
 
-            if (data.Options.Contains("farm"))
+            if (data.Farm)
                 result?.isFarm.Set(true);
 
-            if (data.Options.Contains("greenhouse"))
+            if (data.Greenhouse)
                 result?.isGreenhouse.Set(true);
             
             return result;
@@ -149,7 +167,7 @@ namespace MapTK.Locations
             var locationDataStore = new LocationSaveData();
 
             Helper.Content.Load<Dictionary<string, LocationData>>(LocationsDictionary, ContentSource.GameContent)
-                .Where(l => l.Value.Options.Any(o=> o.ToLower() == "save") && Game1.getLocationFromName(l.Value.Name) is GameLocation)
+                .Where(l => l.Value.Save && Game1.getLocationFromName(l.Value.Name) is GameLocation)
                 .Select(l => Game1.getLocationFromName(l.Value.Name))
                 .ToList()
                 .ForEach((location) =>

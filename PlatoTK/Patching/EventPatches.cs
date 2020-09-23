@@ -119,12 +119,12 @@ namespace PlatoTK.Patching
             if (fullActionString.Contains(';'))
             {
                 foreach (var a in fullActionString.Split(';'))
-                    __instance.performTouchAction(fullActionString, playerStandingPosition);
+                    __instance.performTouchAction(a.Trim(), playerStandingPosition);
 
                 return false;
             }
 
-            Plato.Events.HandleTileAction(fullActionString.Split(' '), Game1.player, __instance, new Point((int)Game1.player.getTileX(), (int)Game1.player.getTileY()), (b) => result = !b);
+            Plato.Events.HandleTileAction(fullActionString.Split(' '), Game1.player, __instance, "Back", new Point((int)Game1.player.getTileX(), (int)Game1.player.getTileY()), (b) => result = !b);
             return result;
         }
 
@@ -141,7 +141,7 @@ namespace PlatoTK.Patching
                 return false;
             }
 
-            Plato.Events.HandleTileAction(action.Split(' '), who, __instance, new Point(tileLocation.X, tileLocation.Y), (b) =>
+            Plato.Events.HandleTileAction(action.Split(' '), who, __instance, "Buildings", new Point(tileLocation.X, tileLocation.Y), (b) =>
             {
                 result = !b;
                 returnValue = true;

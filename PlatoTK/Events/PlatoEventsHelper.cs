@@ -48,9 +48,9 @@ namespace PlatoTK.Events
 
         }
 
-        public void HandleTileAction(string[] commands, Farmer who, GameLocation location, Point position, Action<bool> callback)
+        public void HandleTileAction(string[] commands, Farmer who, GameLocation location, string layer, Point position, Action<bool> callback)
         {
-            var e = new CallingTileActionEventArgs(commands, who, location, position, callback);
+            var e = new CallingTileActionEventArgs(commands, who, location, layer, position, callback);
 
 
             if (e.Tile != null 
@@ -58,7 +58,7 @@ namespace PlatoTK.Events
                 && !Plato.CheckConditions(conditions.ToString(), commands[0]))
                 return;
 
-            CallingTileAction?.Invoke(this, new CallingTileActionEventArgs(commands, who, location, position, callback));
+            CallingTileAction?.Invoke(this, e);
         }
     }
 

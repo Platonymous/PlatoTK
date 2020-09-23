@@ -32,11 +32,11 @@ namespace MapTK.MapExtras
             var mapAsset = asset.AsMap();
             var map = mapAsset.Data;
 
-            Func<Layer, bool> layerPredicate = (l) => l.Properties.TryGetValue(ExtraLayersHandler.UseProperty, out PropertyValue value)
+            Func<Layer, bool> layerPredicate = (l) => l.Properties.TryGetValue(MapExtrasHandler.UseProperty, out PropertyValue value)
                                                      && value.ToString().Split(' ') is string[] p
                                                      && p.Length >= 2
                                                      && (p[0] == "Merge" || p[0] == "Replace")
-                                                     && (!l.Properties.TryGetValue(ExtraLayersHandler.UseConditionProperty, out PropertyValue conditions) || Plato.CheckConditions(conditions.ToString(), l));
+                                                     && (!l.Properties.TryGetValue(MapExtrasHandler.UseConditionProperty, out PropertyValue conditions) || Plato.CheckConditions(conditions.ToString(), l));
 
 
             if (!map.Layers.Any(layerPredicate))
@@ -46,7 +46,7 @@ namespace MapTK.MapExtras
 
             map.Layers.Where(layerPredicate).ToList().ForEach((layer) =>
            {
-               string[] p = layer.Properties[ExtraLayersHandler.UseProperty].ToString().Split(' ');
+               string[] p = layer.Properties[MapExtrasHandler.UseProperty].ToString().Split(' ');
 
                int order = layer.Properties.TryGetValue(UseOrderProperty, out PropertyValue value) && int.TryParse(value.ToString(), out int o) ? o : (p[0] == "Replace" && p.Length < 6) ? 0 : 1;
 

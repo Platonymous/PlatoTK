@@ -10,9 +10,9 @@ namespace MapTK.FestivalSpots
     internal class FestivalPlacementData
     {
         public string Festival { get; set; } = "summer11";
-        public string Phase { get; set; } = "Set-Up";
-        public int X { get; set; } = 0;
-        public int Y { get; set; } = 0;
+        public string Phase { get; set; } = "All";
+        public int X { get; set; } = -1;
+        public int Y { get; set; } = -1;
         public int Facing { get; set; } = 3;
 
     }

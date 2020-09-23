@@ -19,6 +19,6 @@ namespace PlatoTK.Events
         void HandleQuestion(string question, List<Response> choices, Action<string> setQuestion, Action<Response> addResponse, Action<Response> removeResponse, bool isTV, Action callback);
         void HandleChannelSelection(string name, TV tvInstance, Action callback);
         void HandleEventCommand(string[] commands, Event eventInstance, GameTime time, GameLocation location, Action callback, bool post);
-        void HandleTileAction(string[] commands, Farmer who, GameLocation location, Point position, Action<bool> callback);
+        void HandleTileAction(string[] commands, Farmer who, GameLocation location, string layer, Point position, Action<bool> callback);
     }
 }

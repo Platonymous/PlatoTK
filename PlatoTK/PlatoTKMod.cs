@@ -1,6 +1,7 @@
 ﻿using Harmony;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PlatoTK.Content;
 using PlatoTK.Events;
 using PlatoTK.Lua;
 using StardewModdingAPI;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using xTile.Display;
 
 namespace PlatoTK
 {
@@ -56,24 +58,14 @@ namespace PlatoTK
                   }
               });
 
+             
+
             //Spritefont test
             //helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
             //helper.Events.Input.ButtonPressed += Input_ButtonPressed; 
         }
-        static SpriteFont oldFont;
 
-        private void GameLoop_GameLaunched(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
-        {
-            oldFont = Game1.dialogueFont;
-        }
-
-        private void Input_ButtonPressed(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
-        {
-            if (e.Button == SButton.H)
-                Game1.dialogueFont = Helper.GetPlatoHelper().UI.LoadSpriteFont("test.json");
-            else if (e.Button == SButton.G)
-                Game1.dialogueFont = oldFont;
-        }
+       
 
     }
 }

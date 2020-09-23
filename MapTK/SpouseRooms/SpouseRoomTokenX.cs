@@ -42,7 +42,6 @@ namespace MapTK.SpouseRooms
                 SpouseRooms.Add(newSRP);
             }
             var output = GetResult(spot % MaxSpouseRoomSpotsPerRow * 6, spot / MaxSpouseRoomSpotsPerRow * 9);
-            Console.WriteLine("---> " + input + " ---> "+(this is SpouseRoomTokenY ? "Y" : "X")+": " + output[0]);
 
             return output;
         }

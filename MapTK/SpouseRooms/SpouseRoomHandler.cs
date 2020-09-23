@@ -41,12 +41,9 @@ namespace MapTK.SpouseRooms
 
         internal static bool loadSpouseRoom(FarmHouse __instance)
         {
-            Console.WriteLine("_________loadSpouseRoom_:" + (__instance.owner.getSpouse()?.name.Value ?? "Null"));
-
             string spouse = __instance.owner.getSpouse()?.name.Value ?? __instance.owner.spouse;
             if (string.IsNullOrEmpty(spouse))
                 return true;
-            Console.WriteLine("_________loadSpouseRoom_2:" + spouse);
 
             Microsoft.Xna.Framework.Rectangle rectangle = __instance.upgradeLevel == 1 ? new Microsoft.Xna.Framework.Rectangle(29, 1, 6, 9) : new Microsoft.Xna.Framework.Rectangle(35, 10, 6, 9);
             bool setSpot = false;
@@ -57,7 +54,6 @@ namespace MapTK.SpouseRooms
                 setSpot = true;
                 rectangle = new Microsoft.Xna.Framework.Rectangle(pos[0], pos[1], 6, 9);
             }
-            Console.WriteLine("_________loadSpouseRoom_3:");
 
             Map spouseRoomMap = Helper.Content.Load<Map>(VanillaSpouseRoomMap, ContentSource.GameContent);
 
@@ -66,7 +62,6 @@ namespace MapTK.SpouseRooms
 
             if (!setSpot && isVanilla)
                 return true;
-            Console.WriteLine("_________loadSpouseRoom_4: " + spouse + " / " + spot);
 
             Point point = new Point(spot % (isVanilla ? 5 : SpouseRoomTokenX.MaxSpouseRoomSpotsPerRow) * 6, spot / (isVanilla ? 5 : SpouseRoomTokenX.MaxSpouseRoomSpotsPerRow) * 9);
             __instance.map.Properties.Remove("DayTiles");

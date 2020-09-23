@@ -9,5 +9,7 @@ namespace PlatoTK.Lua
         T CallLua<T>(string code, Dictionary<string, object> objects = null, bool addDefaults = true);
 
         MoonSharp.Interpreter.Script LoadLuaCode(string code, Dictionary<string, object> objects = null, bool addDefaults = true);
+
+        void AddGlobalObject(string name, object obj);
     }
 }

@@ -1,17 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using PlatoTK.Utils;
 using StardewValley;
 
 namespace PlatoTK.Lua
 {
-
     internal class LuaHelper : InnerHelper, ILuaHelper
     {
+        private readonly Dictionary<string, object> AddedGlobalObjects = new Dictionary<string, object>();
+
         public LuaHelper(IPlatoHelper helper)
             : base(helper)
         {
 
+        }
+
+        public void AddGlobalObject(string name, object obj)
+        {
+            if (AddedGlobalObjects.ContainsKey(name))
+                AddedGlobalObjects[name] = obj;
+            else
+                AddedGlobalObjects.Add(name, obj);
         }
 
         private Dictionary<string,object> GetDefaultObjects()
@@ -20,6 +30,10 @@ namespace PlatoTK.Lua
 
             dict.Add("Game1", Game1.game1);
             dict.Add("Utility", new Utility());
+            dict.Add("Plato", new BasicUtils(Plato));
+
+            foreach (var entry in AddedGlobalObjects)
+                dict.Add(entry.Key, entry.Value);
 
             return dict;
         }

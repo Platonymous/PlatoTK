@@ -6,6 +6,7 @@ using StardewValley;
 using System;
 using PlatoTK.Events;
 using PlatoTK.Lua;
+using PlatoTK.Utils;
 
 namespace PlatoTK
 {
@@ -19,6 +20,8 @@ namespace PlatoTK
         IPlatoEventsHelper Events { get; }
 
         IUIHelper UI { get; }
+
+        IBasicUtils Utilities { get; }
         StardewModdingAPI.IModHelper ModHelper { get; }
         DelayedAction SetDelayedAction(int delay, Action action);
 

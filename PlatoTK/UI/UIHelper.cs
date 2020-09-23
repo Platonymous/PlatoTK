@@ -99,17 +99,21 @@ namespace PlatoTK.UI
             }
 
             component = null;
-            return false;
+            return false;        
         }
+
+
 
         public List<Texture2D> LoadFontPages(FontFile fontFile, string assetName)
         {
+            //return fontFile.Pages.Select(p => Plato.ModHelper.Content.Load<Texture2D>(p.File,StardewModdingAPI.ContentSource.GameContent)).ToList();
             return fontFile.Pages.Select(p => Plato.ModHelper.Content.Load<Texture2D>(Path.Combine(Path.GetDirectoryName(assetName), p.File))).ToList();
         }
 
         public FontFile LoadFontFile(string assetName)
         {
-            return FontLoader.Parse(Plato.ModHelper.Content.Load<string>(assetName));
+            //return Plato.ModHelper.Content.Load<FontFile>(assetName);//
+            return FontLoader.Parse(File.ReadAllText(Path.Combine(Plato.ModHelper.DirectoryPath,assetName)));
         }
 
         public Dictionary<char, FontChar> ParseCharacterMap(FontFile fontFile)
@@ -119,6 +123,7 @@ namespace PlatoTK.UI
 
         public SpriteFont LoadSpriteFont(string assetName)
         {
+            //return Plato.ModHelper.Content.Load<SpriteFont>(assetName);
             Texture2D texture = Plato.ModHelper.Content.Load<Texture2D>(Path.Combine(Path.GetDirectoryName(assetName), Path.GetFileNameWithoutExtension(assetName) + ".png"));
             SpriteFontData data = Plato.ModHelper.Content.Load<SpriteFontData>(assetName);
             object[] parameter = new object[]{

@@ -8,6 +8,7 @@ using PlatoTK.Events;
 using System.Collections.Generic;
 using System.Linq;
 using PlatoTK.Lua;
+using PlatoTK.Utils;
 
 namespace PlatoTK
 {
@@ -30,6 +31,7 @@ namespace PlatoTK
 
         public IUIHelper UI { get; }
 
+        public IBasicUtils Utilities { get; }
         public PlatoHelper(StardewModdingAPI.IModHelper helper)
         {
             ModHelper = helper;
@@ -38,6 +40,7 @@ namespace PlatoTK
             Content = new ContentHelper(this);
             UI = new UIHelper(this);
             Lua = new LuaHelper(this);
+            Utilities = new BasicUtils(this);
         }
 
         public bool CheckConditions(string conditions, object caller)

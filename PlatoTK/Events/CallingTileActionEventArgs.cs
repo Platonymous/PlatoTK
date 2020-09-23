@@ -28,27 +28,17 @@ namespace PlatoTK.Events
 
         public Point Position { get; }
 
-        public Tile Tile { 
-            get {
-                if (_tile != null)
-                    return _tile;
-
-                _tile = Map?.Layers
-                    .Select(l => l.Tiles[Position.X, Position.Y])
-                    .FirstOrDefault(t => t != null && t.Properties.Any(p => p.Value != null && p.ToString().Contains(FullString)));
-
-                return _tile;
-            }
-        }
-        public Layer Layer => Tile?.Layer;
+        public Tile Tile => Layer?.Tiles[Position.X, Position.Y];
+        public Layer Layer { get; }
 
         public Map Map => Location?.Map;
 
-        public CallingTileActionEventArgs(string[] commands, Farmer who, GameLocation location, Point position, Action<bool> callback)
+        public CallingTileActionEventArgs(string[] commands, Farmer who, GameLocation location, string layer, Point position, Action<bool> callback)
         {
             Commands = commands;
             Caller = who ?? Game1.player;
             Location = location ?? Game1.currentLocation;
+            Layer = Map?.GetLayer(layer);
             Position = position == null ? Point.Zero : position;
             Callback = callback;
         }

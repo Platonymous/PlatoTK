@@ -11,8 +11,6 @@ namespace PlatoTK.Content
 
         private readonly string Conditions;
 
-        private readonly bool Subscribed;
-
         private readonly IPlatoHelper Helper;
 
         private bool MatchesConditions;
@@ -25,7 +23,7 @@ namespace PlatoTK.Content
             {
                 if (!HasConditions)
                     MatchesConditions = true;
-                else if (!Subscribed)
+                else
                     MatchesConditions = Helper.CheckConditions(Conditions, this);
 
                 return MatchesConditions;

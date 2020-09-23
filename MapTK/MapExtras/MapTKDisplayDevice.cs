@@ -59,7 +59,7 @@ namespace MapTK.MapExtras
                 return texture;
             else
             {
-                LoadTileSheet(tilesheet);
+                LoadTileSheetInternal(tilesheet);
                 if (m_tileSheetTextures2.TryGetValue(tilesheet, out Texture2D texture2))
                     return texture2;
                 else
@@ -74,8 +74,8 @@ namespace MapTK.MapExtras
 
         protected virtual void DrawBefore(Layer layer, Location location, float layerDepth)
         {
-            if (ExtraLayersHandler.DrawBeforeCache.ContainsKey(layer))
-                foreach (var extraLayer in ExtraLayersHandler.DrawBeforeCache[layer])
+            if (MapExtrasHandler.DrawBeforeCache.ContainsKey(layer))
+                foreach (var extraLayer in MapExtrasHandler.DrawBeforeCache[layer])
                 {
                     DrawBefore(extraLayer, location, layerDepth);
 
@@ -88,8 +88,8 @@ namespace MapTK.MapExtras
 
         protected virtual void DrawAfter(Layer layer, Location location, float layerDepth)
         {
-            if (ExtraLayersHandler.DrawAfterCache.ContainsKey(layer))
-                foreach (var extraLayer in ExtraLayersHandler.DrawAfterCache[layer])
+            if (MapExtrasHandler.DrawAfterCache.ContainsKey(layer))
+                foreach (var extraLayer in MapExtrasHandler.DrawAfterCache[layer])
                 {
                     DrawBefore(extraLayer, location, layerDepth);
 
@@ -173,7 +173,7 @@ namespace MapTK.MapExtras
 
         }
 
-        public virtual void LoadTileSheet(TileSheet tileSheet)
+        protected virtual void LoadTileSheetInternal(TileSheet tileSheet)
         {
             try
             {
@@ -215,6 +215,11 @@ namespace MapTK.MapExtras
                             m_tileSheetTextures2.Add(tileSheet, texture);
                 }
             }
+        }
+
+        public virtual void LoadTileSheet(TileSheet tileSheet)
+        {
+
         }
 
         public virtual void SetClippingRegion(xTile.Dimensions.Rectangle clippingRegion)
