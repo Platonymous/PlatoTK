@@ -219,7 +219,7 @@ namespace MapTK.MapExtras
 
         public virtual void LoadTileSheet(TileSheet tileSheet)
         {
-
+           
         }
 
         public virtual void SetClippingRegion(xTile.Dimensions.Rectangle clippingRegion)

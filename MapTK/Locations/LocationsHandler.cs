@@ -22,6 +22,7 @@ namespace MapTK.Locations
         const string LocationSaveData = @"MapTK.SaveData.Locations";
         internal const string LocationsDictionary = @"MapTK/Locations";
         internal static IModHelper Helper;
+        internal readonly static List<GameLocation> locationStore = new List<GameLocation>();
         readonly static Type[] ExtraTypes = new Type[24]
         {
             typeof(Tool),
@@ -71,6 +72,15 @@ namespace MapTK.Locations
 
             helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
             helper.Events.GameLoop.Saving += GameLoop_Saving;
+            helper.Events.GameLoop.Saved += GameLoop_Saved;
+        }
+
+        private void GameLoop_Saved(object sender, SavedEventArgs e)
+        {
+            foreach (var loc in locationStore)
+                Game1.locations.Add(loc);
+
+            locationStore.Clear();
         }
 
         private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)
@@ -184,8 +194,9 @@ namespace MapTK.Locations
 
         private void GameLoop_Saving(object sender, SavingEventArgs e)
         {
+            locationStore.Clear();
             var locationDataStore = new LocationSaveData();
-
+            var locations = Helper.Content.Load<Dictionary<string, LocationData>>(LocationsDictionary, ContentSource.GameContent);
             Helper.Content.Load<Dictionary<string, LocationData>>(LocationsDictionary, ContentSource.GameContent)
                 .Where(l => l.Value.Save && Game1.getLocationFromName(l.Value.Name) is GameLocation)
                 .Select(l => Game1.getLocationFromName(l.Value.Name))
@@ -209,6 +220,18 @@ namespace MapTK.Locations
 
                     }
                 });
+
+
+
+            locations.Where(ls => Game1.getLocationFromName(ls.Value.Name) is GameLocation l)
+                .ToList().ForEach(ls =>
+                {
+                    var loc = Game1.getLocationFromName(ls.Value.Name);
+                    locationStore.Add(loc);
+                    Game1.locations.Remove(loc);
+                });
+
+
 
             Helper.Data.WriteSaveData($"{LocationSaveData}", locationDataStore);
         }
