@@ -1,5 +1,10 @@
-﻿using System;
+﻿using Harmony;
+using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using PlatoTK.Reflection;
 
 namespace PlatoTK.Content
 {
@@ -28,5 +33,21 @@ namespace PlatoTK.Content
         {
             return new SaveIndex(id, dataSource, validateValue, injectValue, Plato, minIndex);
         }
+
+        public ISaveIndex GetSaveIndex(string id,IPlatoHelper helper,int minIndex = 13000)
+        {
+            return new SaveIndex(id, id, helper, minIndex);
+        }
+
+       /* public T Load<T>(string key, ContentSource source = ContentSource.ModFolder)
+        {
+            string[] extensions = new string[] { ".xml",".fnt" };
+            Type[] types = new Type[] { typeof(SpriteFont) };
+            object manager = AccessTools.Field(Plato.ModHelper.Content.GetType(), source == ContentSource.GameContent ? "GameContentManager" : "ModContentManager")?.GetValue(Plato.ModHelper.Content);
+            string assetName = Plato.ModHelper.Content.NormalizeAssetName(key);
+            if (!types.Contains(typeof(T)) && extensions.Contains()
+
+            return content.Load<T>(key, source);
+        }*/
     }
 }

@@ -109,7 +109,9 @@ namespace MapTK.MapExtras
             if (tile.Layer.Id == "Front")
                 DrawBefore(tile.Layer, location, layerDepth);
 
-                    xTile.Dimensions.Rectangle tileImageBounds = tile.TileSheet.GetTileImageBounds(tile.TileIndex);
+           
+
+            xTile.Dimensions.Rectangle tileImageBounds = tile.TileSheet.GetTileImageBounds(tile.TileIndex);
             Texture2D tileSheetTexture = GetTexture(tile.TileSheet);
             if (tileSheetTexture == null || tileSheetTexture.IsDisposed)
                 return;
@@ -138,12 +140,21 @@ namespace MapTK.MapExtras
                 else
                     m_tilePosition += GetOffsetForFlippedTile(tile.GetRotationValue());
             }
+            var destinationRectangle = new Microsoft.Xna.Framework.Rectangle((int)this.m_tilePosition.X, (int)this.m_tilePosition.Y, Game1.tileSize, Game1.tileSize);
+            var sourceRectangle = new Microsoft.Xna.Framework.Rectangle?(this.m_sourceRectangle);
+            var tileColor = this.m_modulationColour * this.m_instructions.Opacity;
+            var rotation = this.m_instructions.Rotation;
+
+            foreach (var tileDraw in Api.MapTKAPI.TileDrawHandlers)
+                if (!tileDraw(tileSheetTexture, destinationRectangle, sourceRectangle, tileColor, rotation, origin, (SpriteEffects)m_instructions.Effect, layerDepth))
+                    return;
 
             this.m_spriteBatchAlpha.Draw(
             texture: tileSheetTexture,
-            destinationRectangle: new Microsoft.Xna.Framework.Rectangle((int)this.m_tilePosition.X, (int)this.m_tilePosition.Y, Game1.tileSize, Game1.tileSize),
-            sourceRectangle: new Microsoft.Xna.Framework.Rectangle?(this.m_sourceRectangle), this.m_modulationColour * this.m_instructions.Opacity,
-            rotation: this.m_instructions.Rotation,
+            destinationRectangle: destinationRectangle,
+            sourceRectangle: sourceRectangle,
+            color: tileColor,
+            rotation: rotation,
             origin: origin,
             effects: (SpriteEffects)m_instructions.Effect,
             layerDepth);

@@ -1,18 +1,15 @@
 ﻿using Harmony;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using PlatoTK.Content;
 using PlatoTK.Events;
 using PlatoTK.Lua;
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Objects;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using xTile.Display;
+using System.Reflection;
 
 namespace PlatoTK
 {
@@ -23,6 +20,8 @@ namespace PlatoTK
             var plato = helper.GetPlatoHelper();
             PlatoHelper.EventsInternal = new PlatoEventsHelper(plato);
             PlatoHelper.ConditionsProvider.Add(new LuaConditionsProvider(plato));
+
+            helper.Events.GameLoop.GameLaunched += ApplyCompatPatches;
 
             var lua = helper.GetPlatoHelper().Lua;
             helper.ConsoleCommands.Add("L#", "Execute Lua script with PlatoTK", (s, p) =>
@@ -43,7 +42,7 @@ namespace PlatoTK
                           {
                               var result = lua.CallLua<object>(code);
 
-                              if (result is IEnumerable objs && objs.Cast<object>() is IEnumerable<object> results)
+                              if (!(result is string) && result is IEnumerable objs && objs.Cast<object>() is IEnumerable<object> results)
                                   Monitor.Log($"Results ({results.Count()}): {string.Join(",", objs.Cast<object>().Select(o => o.ToString()))}", LogLevel.Info);
                               else
                                   Monitor.Log("Result: " + (result?.ToString() ?? "null"), LogLevel.Info);
@@ -57,15 +56,83 @@ namespace PlatoTK
                       Monitor.Log(e.ToString(), LogLevel.Error);
                   }
               });
-
-             
-
-            //Spritefont test
-            //helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
-            //helper.Events.Input.ButtonPressed += Input_ButtonPressed; 
+            helper.Events.GameLoop.SaveLoaded += GameLoop_SaveLoaded;
+            helper.Events.Player.InventoryChanged += Player_InventoryChanged;
         }
 
-       
+        private void Player_InventoryChanged(object sender, InventoryChangedEventArgs e)
+        {
+            if (e.Added.Count() > 0)
+                e.Added.ToList().ForEach(i =>
+                {
+                    if (!CheckItem(i))
+                        e.Player.removeItemFromInventory(i);
+                });
+        }
 
+        private void GameLoop_SaveLoaded(object sender, SaveLoadedEventArgs e)
+        {
+            Clean();
+        }
+
+        private void Clean()
+        {
+            Game1.player.items.Where(i => i != null).ToList().ForEach(i =>
+            {
+                if (!CheckItem(i))
+                    Game1.player.removeItemFromInventory(i);
+            });
+
+            foreach (GameLocation location in Game1.locations)
+            {
+                foreach (var key in location.objects.Keys.ToList())
+                {
+                    if (!CheckItem(location.objects[key]))
+                        location.objects.Remove(key);
+                    else if (location.objects[key] is Chest c)
+                        c.items.Where(i => i != null).ToList().ForEach(i =>
+                        {
+                            if (!CheckItem(i))
+                                c.items.Remove(i);
+                        });
+                }
+#if ANDROID
+#else
+                foreach (var furniture in location.furniture.ToList())
+                    if (!CheckItem(furniture))
+                        location.furniture.Remove(furniture);
+#endif
+            }
+        }
+
+        private bool CheckItem(Item i)
+        {
+            try
+            {
+                if (i.GetType().Assembly != typeof(Item).Assembly)
+                    return true;
+
+                i.getDescription();
+
+                if (i is Furniture f)
+                    typeof(Furniture).GetMethod("getData", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(f, null);
+
+                if (i is StardewValley.Object o)
+                    o.getDescription();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void ApplyCompatPatches(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
+        {
+            Monitor.Log("Apply Patches", LogLevel.Warn);
+            HarmonyInstance instance = HarmonyInstance.Create("PlatoTk.CompatPatches");
+            Compat.SpaceCorePatches.PatchSpaceCore(Helper, instance);
+        }
     }
 }

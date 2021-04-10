@@ -23,12 +23,12 @@ namespace PlatoTK.Patching
 
         bool TryGetLink(object linkedObject, out object target);
 
-        void PatchTileDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, int index, int tileWidth = 16, int tileHeight = 16);
+        void PatchTileDraw(string id, Texture2D targetTexture, Func<Texture2D, bool> predicate, Texture2D patch, Rectangle? sourceRectangle, int index, int tileWidth = 16, int tileHeight = 16);
 
-        void PatchTileDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Func<int> getIndex, int tileWidth = 16, int tileHeight = 16);
+        void PatchTileDraw(string id, Texture2D targetTexture, Func<Texture2D, bool> predicate, Texture2D patch, Rectangle? sourceRectangle, Func<int> getIndex, int tileWidth = 16, int tileHeight = 16);
 
-        void PatchAreaDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Rectangle? targetTileArea);
-        void PatchAreaDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Func<Rectangle> getTargetTileArea);
+        void PatchAreaDraw(string id, Texture2D targetTexture, Func<Texture2D, bool> predicate, Texture2D patch, Rectangle? sourceRectangle, Rectangle? targetTileArea);
+        void PatchAreaDraw(string id, Texture2D targetTexture, Func<Texture2D, bool> predicate, Texture2D patch, Rectangle? sourceRectangle, Func<Rectangle> getTargetTileArea);
 
         void RemoveDrawPatch(string id);
 

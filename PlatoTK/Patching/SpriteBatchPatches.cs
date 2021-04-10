@@ -52,13 +52,20 @@ namespace PlatoTK.Patching
             if (!_skipArea)
             {
                 string tag = texture.Tag is string s ? s : "";
+                string name = texture.Name is string n ? n : "";
 
                 if (!sourceRectangle.HasValue)
                     sourceRectangle = new Rectangle(0, 0, texture.Width, texture.Height);
 
+                if (name.Contains(":") && name.Split(':') is string[] sc && sc.Length == 3 && sc[0] == "Extended" && int.TryParse(sc[2], out int yAdjust))
+                {
+                    texture.Name = sc[1];
+                    sourceRectangle = new Rectangle(sourceRectangle.Value.X, sourceRectangle.Value.Y + (yAdjust * 4096), sourceRectangle.Value.Width, sourceRectangle.Value.Height);
+                }
+
                 foreach (var patch in DrawPatches.Where(p => sourceRectangle.Value == p.TargetArea() || (tag == p.Id)))
                 {
-                    if (!(patch.Patch is Texture2D) || (!texture.Equals(patch.Texture()) && !(tag == patch.Id)))
+                    if (!(patch.Patch is Texture2D) || ((!patch.Texture(texture)) && !(tag == patch.Id)))
                         continue;
 
                     _skipArea = true;

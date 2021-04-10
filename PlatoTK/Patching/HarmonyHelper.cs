@@ -57,34 +57,34 @@ namespace PlatoTK.Patching
             return new PlatoTexture<TData>(id, data, handler, width, height, graphicsDevice ?? Game1.graphics.GraphicsDevice);
         }
 
-        public void PatchTileDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, int index, int tileWidth = 16, int tileHeight = 16)
+        public void PatchTileDraw(string id, Texture2D targetTexture, Func<Texture2D, bool> predicate, Texture2D patch, Rectangle? sourceRectangle, int index, int tileWidth = 16, int tileHeight = 16)
         {
             id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
-            PatchAreaDraw(id, targetTexture, patch, sourceRectangle, Game1.getSourceRectForStandardTileSheet(targetTexture(), index, tileWidth, tileHeight));
+            PatchAreaDraw(id, targetTexture, predicate, patch, sourceRectangle, Game1.getSourceRectForStandardTileSheet(targetTexture, index, tileWidth, tileHeight));
         }
 
-        public void PatchAreaDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Rectangle? targetTileArea)
+        public void PatchAreaDraw(string id, Texture2D targetTexture, Func<Texture2D,bool> predicate, Texture2D patch, Rectangle? sourceRectangle, Rectangle? targetTileArea)
         {
             id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
-            SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, patch, targetTileArea.HasValue ? () => targetTileArea.Value : (Func<Rectangle>)null, sourceRectangle));
+            SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, predicate, patch, targetTileArea.HasValue ? () => targetTileArea.Value : (Func<Rectangle>)null, sourceRectangle));
             SpriteBatchPatches.InitializePatch();
         }
 
-        public void PatchTileDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Func<int> getIndex, int tileWidth = 16, int tileHeight = 16)
+        public void PatchTileDraw(string id, Texture2D targetTexture, Func<Texture2D,bool> predicate, Texture2D patch, Rectangle? sourceRectangle, Func<int> getIndex, int tileWidth = 16, int tileHeight = 16)
         {
             id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
-            SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, patch, () => Game1.getSourceRectForStandardTileSheet(targetTexture(), getIndex(), tileWidth, tileHeight), sourceRectangle));
+            SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, predicate, patch, () => Game1.getSourceRectForStandardTileSheet(targetTexture, getIndex(), tileWidth, tileHeight), sourceRectangle));
             SpriteBatchPatches.InitializePatch();
         }
 
-        public void PatchAreaDraw(string id, Func<Texture2D> targetTexture, Texture2D patch, Rectangle? sourceRectangle, Func<Rectangle> getTargetTileArea)
+        public void PatchAreaDraw(string id, Texture2D targetTexture, Func<Texture2D, bool> predicate, Texture2D patch, Rectangle? sourceRectangle, Func<Rectangle> getTargetTileArea)
         {
             id = $"{Plato.ModHelper.ModRegistry.ModID}.{id}";
             SpriteBatchPatches.DrawPatches.RemoveWhere(p => p.Id == id);
-            SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, patch, getTargetTileArea, sourceRectangle));
+            SpriteBatchPatches.DrawPatches.Add(new AreaDrawPatch(id, targetTexture, predicate, patch, getTargetTileArea, sourceRectangle));
             SpriteBatchPatches.InitializePatch();
         }
 
@@ -131,11 +131,12 @@ namespace PlatoTK.Patching
 
             LinkedConstructors.Add(new TypeForwarding(typeof(TOriginal), typeof(TTarget), Plato, null));
 
+            if (LinkedConstructors.Count(l => l.FromType == typeof(TOriginal)) > 1)
+                return;
+
             foreach (ConstructorInfo constructor in 
                 typeof(TOriginal)
-                .GetConstructors()
-                .Where(c => typeof(TTarget)
-                .GetConstructor(c.GetParameters().Select(p=>p.ParameterType).ToArray()) is ConstructorInfo))
+                .GetConstructors())
             {
                 List<Type> patchParameters = new List<Type>();
                 List<Type> genericParameters = new List<Type>();
@@ -150,9 +151,12 @@ namespace PlatoTK.Patching
 
                 if (AccessTools.GetDeclaredMethods(typeof(ConstructorPatches)).FirstOrDefault(m => m.Name == nameof(ConstructorPatches.ConstructorPatch) && m.IsGenericMethod && m.GetParameters().Length == patchParameters.Count) is MethodInfo sMethod)
                 {
+                    var gMethod = sMethod.MakeGenericMethod(genericParameters.ToArray());
+                    var hMethod = new HarmonyMethod(gMethod);
+
                     HarmonyInstance.Patch(
                         original: constructor,
-                        postfix: new HarmonyMethod(sMethod.MakeGenericMethod(genericParameters.ToArray()))
+                        postfix: hMethod
                         );
                 }
             }
@@ -224,9 +228,6 @@ namespace PlatoTK.Patching
 
             if (target is ILinked linked1 && !linked1.CanLinkWith(original))
                 return false;
-
-            if (target is ISyncedObject synced && synced.GetDataLink(original) is Netcode.NetString dataString)
-                synced.Data = new SyncedData(dataString);
 
             if (target is ILinked linked2)
             {

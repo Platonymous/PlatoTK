@@ -33,5 +33,10 @@ namespace MapTK
             if (Helper.ModRegistry.IsLoaded("DigitalCarbide.SpriteMaster"))
                 CompatOptions.Add("SpriteMaster");
         }
+
+        public override object GetApi()
+        {
+            return new MapTK.Api.MapTKAPI();
+        }
     }
 }

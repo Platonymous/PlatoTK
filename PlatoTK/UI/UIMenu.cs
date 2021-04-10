@@ -15,11 +15,31 @@ namespace PlatoTK.UI
 
         public Func<bool> ShouldDraw { get; set; } = () => true;
 
+        private float LastUIZoom { get; set; } = 1f ;
+
         public UIMenu(IPlatoHelper helper, IWrapper menu)
             :  base(0,0,Game1.viewport.Width, Game1.viewport.Height, false)
         {
+#if ANDROID
+#else
+            LastUIZoom = Game1.options.desiredUIScale;
+            Game1.options.desiredUIScale = Game1.options.desiredBaseZoomLevel;
+#endif
             Helper = helper;
             Menu = menu;
+            Helper.ModHelper.Events.GameLoop.UpdateTicked += ResetZoom;
+        }
+
+        private void ResetZoom(object sender, StardewModdingAPI.Events.UpdateTickedEventArgs e)
+        {
+            if (!(Game1.activeClickableMenu is UIMenu))
+            {
+#if ANDROID
+#else
+                Game1.options.desiredUIScale = LastUIZoom;
+#endif
+                Helper.ModHelper.Events.GameLoop.UpdateTicked -= ResetZoom;
+            }
         }
 
         public override void draw(SpriteBatch b)

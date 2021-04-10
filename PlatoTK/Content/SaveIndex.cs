@@ -11,16 +11,46 @@ namespace PlatoTK.Content
         string Id { get; }
         string Value { get; }
         int Index { get; }
+
+        void SetGenericData(string genericData);
     }
 
     public interface ISaveIndex : ISaveIndexHandle
     {
-        void ValidateIndex(int tryForceIndex = -1);
+        void ValidateIndex();
         bool TryAddToContentPatcher();
+    }
+
+    public class IndexCheck : ISaveIndexHandle
+    {
+        public string Id { get; }
+
+        public string Value { get; }
+
+        public int Index { get; }
+
+        public void SetGenericData(string genericData)
+        {
+            if (SaveIndex.GenericData.ContainsKey(Index))
+                SaveIndex.GenericData[Index] = genericData;
+            else
+                SaveIndex.GenericData.Add(Index, genericData);
+        }
+
+        public IndexCheck(string id, string value, int index)
+        {
+            Id = id;
+            Value = value;
+            Index = index;
+        }
     }
 
     internal class SaveIndex : ISaveIndex
     {
+        internal static readonly List<int> IndexCache = new List<int>();
+        internal static readonly Dictionary<int, string> GenericData = new Dictionary<int, string>();
+        internal static readonly Dictionary<string, int> Indexes = new Dictionary<string, int>();
+
         private readonly int MinIndex; 
         private readonly Func<ISaveIndexHandle, bool> Validator;
         private readonly Action<ISaveIndexHandle> Injector;
@@ -33,14 +63,15 @@ namespace PlatoTK.Content
             get
             {
                 var dict = LoadData();
-                if (Index >= MinIndex && dict.ContainsKey(Index))
+                if (dict.ContainsKey(Index))
                     return dict[Index];
 
                 return "";
             }
 
         }
-        public int Index { get; private set; }
+
+        public int Index { get; private set; } = -1;
         
         public SaveIndex(string id, 
             Func<IDictionary<int,string>> loadData, 
@@ -71,20 +102,18 @@ namespace PlatoTK.Content
          
         }
 
-        public void ValidateIndex(int tryForceIndex = -1)
+        public SaveIndex(string id,
+            string genericData,
+            IPlatoHelper helper,
+            int minIndex = 13000)
+            : this(id, () => GenericData, (s) =>  s.Value == genericData, (s) => s.SetGenericData(genericData), helper, minIndex)
+        {
+
+        }
+
+        public void ValidateIndex()
         {
             var dict = LoadData();
-
-            if (tryForceIndex >= MinIndex && tryForceIndex != Index)
-            {
-                if (!dict.ContainsKey(tryForceIndex))
-                {
-                    Index = tryForceIndex;
-                    Injector?.Invoke(this);
-                }
-                else
-                    Index = GetNewIndex();
-            }
 
             if (Validator?.Invoke(this) ?? true)
             {
@@ -98,12 +127,66 @@ namespace PlatoTK.Content
 
         private IDictionary<int, string> LoadData()
         {
-            return DataLoader?.Invoke() ?? new Dictionary<int, string>();
+            return DataLoader?.Invoke() ?? GenericData;
+        }
+
+        public void SetGenericData(string genericData)
+        {
+            if (GenericData.ContainsKey(Index))
+                GenericData[Index] = genericData;
+            else
+                GenericData.Add(Index, genericData);
         }
 
         private int GetNewIndex()
         {
-            return Math.Max(MinIndex, (LoadData()?.Keys.Max() + 1) ?? 0);
+            var Data = LoadData();
+
+            if (Indexes.ContainsKey(Id))
+            {
+                Index = Indexes[Id];
+                if (Validator?.Invoke(new IndexCheck(Id, Data?[Index] ?? "", Index)) ?? false)
+                    return Index;
+            }
+
+            if (Index > -1 && !Data.ContainsKey(Index))
+            {
+                if (Indexes.ContainsKey(Id))
+                    Indexes[Id] = Index;
+                else
+                    Indexes.Add(Id, Index);
+
+                return Index;
+            }
+
+            if (Data?.Any(d => Validator?.Invoke(new IndexCheck(Id, d.Value, d.Key)) ?? false) ?? false)
+            {
+                int i = Data.First(d => Validator?.Invoke(new IndexCheck(Id, d.Value, d.Key)) ?? false).Key;
+                
+                if (Indexes.ContainsKey(Id))
+                    Indexes[Id] = i;
+                else
+                    Indexes.Add(Id,i);
+
+                return i;
+            }
+
+            List<int> indexes = new List<int>()
+            {
+                MinIndex, GenericData.Keys.Count > 0 ? GenericData.Keys.Max() : 0, IndexCache.Count > 0 ? IndexCache.Max() : 0,LoadData()?.Keys?.Max() ?? 0
+            };
+
+            int index = indexes.Max() + 1;
+            IndexCache.Add(index);
+
+            if (Indexes.ContainsKey(Id))
+                Indexes[Id] = index;
+            else
+                Indexes.Add(Id, index);
+
+            Index = index;
+
+            return index;
         }
 
         public bool TryAddToContentPatcher()

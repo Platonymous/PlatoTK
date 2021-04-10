@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PlatoTK.Lua;
 using PlatoTK.Utils;
+using PlatoTK.Presets;
 
 namespace PlatoTK
 {
@@ -19,6 +20,7 @@ namespace PlatoTK
         public IHarmonyHelper Harmony { get; }
 
         public ILuaHelper Lua { get; }
+        public IPresetHelper Presets { get; }
 
         private static readonly EventConditionsProvider DefaultEventsConditionsProvider = new EventConditionsProvider();
         public IPlatoEventsHelper Events => EventsInternal;
@@ -40,6 +42,7 @@ namespace PlatoTK
             Content = new ContentHelper(this);
             UI = new UIHelper(this);
             Lua = new LuaHelper(this);
+            Presets = new PresetHelper(this);
             Utilities = new BasicUtils(this);
         }
 

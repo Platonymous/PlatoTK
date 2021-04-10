@@ -20,6 +20,10 @@ namespace PlatoTK.Content
             Action<ISaveIndexHandle> injectValue,
             int minIndex = 13000);
 
+        ISaveIndex GetSaveIndex(string id,
+            IPlatoHelper helper,
+            int minIndex = 13000);
+
         IMapHelper Maps { get; }
     }
 }

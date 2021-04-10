@@ -7,6 +7,7 @@ using System;
 using PlatoTK.Events;
 using PlatoTK.Lua;
 using PlatoTK.Utils;
+using PlatoTK.Presets;
 
 namespace PlatoTK
 {
@@ -16,6 +17,8 @@ namespace PlatoTK
         IHarmonyHelper Harmony { get; }
         IContentHelper Content { get; }
         ILuaHelper Lua { get; }
+
+        IPresetHelper Presets { get; }
 
         IPlatoEventsHelper Events { get; }
 

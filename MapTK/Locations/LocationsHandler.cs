@@ -90,6 +90,24 @@ namespace MapTK.Locations
 
             HarmonyInstance instance = HarmonyInstance.Create("Platonymous.MapTK.AddLocations");
             instance.Patch(AccessTools.Method(typeof(SaveGame),nameof(SaveGame.loadDataToLocations)), prefix: new HarmonyMethod(typeof(LocationsHandler),nameof(GameLocationsPatch)));
+
+            instance.Patch(AccessTools.Method(typeof(NPC), nameof(NPC.populateRoutesFromLocationToLocationList)), prefix: new HarmonyMethod(typeof(LocationsHandler), nameof(SetLocationsBeforeRoutes)));
+        }
+
+        internal static void SetLocationsBeforeRoutes()
+        {
+            Helper.Content.InvalidateCache(LocationsDictionary);
+            var locations = Helper.Content.Load<Dictionary<string, LocationData>>(LocationsDictionary, ContentSource.GameContent);
+            var result = new List<GameLocation>();
+            locations.Values
+                .Where(l => !Game1.locations.Any(g => g.Name == l.Name))
+                .ToList()
+                .ForEach(l =>
+                {
+                    var newLocation = GetNewLocation(l);
+                    Game1.locations.Add(newLocation);
+                    result.Add(newLocation);
+                });
         }
 
         internal static void GameLocationsPatch(List<GameLocation> gamelocations)
@@ -167,11 +185,20 @@ namespace MapTK.Locations
                     }
             }
 
+            if (result == null)
+                return result;
+
             if (data.Farm)
-                result?.isFarm.Set(true);
+                result.isFarm.Set(true);
 
             if (data.Greenhouse)
-                result?.isGreenhouse.Set(true);
+                result.isGreenhouse.Set(true);
+
+            if(data.Season != "auto")
+                if (result?.Map.Properties.TryGetValue("SeasonOverride", out xTile.ObjectModel.PropertyValue value) ?? false)
+                    result.Map.Properties["SeasonOverride"] = data.Season;
+                else
+                    result.Map.Properties.Add("SeasonOverride", data.Season);
 
             try
             {

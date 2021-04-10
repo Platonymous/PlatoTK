@@ -13,5 +13,7 @@
         public bool Farm { get; set; } = false;
 
         public bool Greenhouse { get; set; } = false;
+
+        public string Season { get; set; } = "auto";
     }
 }
