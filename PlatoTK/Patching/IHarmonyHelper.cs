@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -12,7 +12,7 @@ namespace PlatoTK.Patching
 {
     public interface IHarmonyHelper
     {
-        HarmonyInstance HarmonyInstance { get; }
+        Harmony HarmonyInstance { get; }
         bool LinkObjects(object original, object target);
 
         void LinkTypes(Type originalType, Type targetType, object targetForAllInstances = null);

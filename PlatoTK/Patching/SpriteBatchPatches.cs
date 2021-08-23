@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -21,7 +21,7 @@ namespace PlatoTK.Patching
 
             _patched = true;
 
-            var harmony = HarmonyInstance.Create($"Plato.DrawPatches");
+            var harmony = new Harmony($"Plato.DrawPatches");
 
             foreach (MethodInfo method in AccessTools.GetDeclaredMethods(typeof(SpriteBatch)).Where(m => m.IsPublic && m.Name == "Draw"))
             {

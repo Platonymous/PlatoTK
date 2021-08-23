@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using PlatoTK.Events;
 using PlatoTK.Lua;
 using StardewModdingAPI;
@@ -29,7 +29,7 @@ namespace PlatoTK
                   try
                   {
                       if (p.Length == 0)
-                          Monitor.Log("No lua script provided.", LogLevel.Warn);
+                          Monitor.Log("No lua script provided.", LogLevel.Trace);
                       else
                       {
                           bool returnValue = p[0] == "log";
@@ -130,8 +130,8 @@ namespace PlatoTK
 
         private void ApplyCompatPatches(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
         {
-            Monitor.Log("Apply Patches", LogLevel.Warn);
-            HarmonyInstance instance = HarmonyInstance.Create("PlatoTk.CompatPatches");
+            Monitor.Log("Apply Patches", LogLevel.Trace);
+            Harmony instance = new Harmony("PlatoTk.CompatPatches");
             Compat.SpaceCorePatches.PatchSpaceCore(Helper, instance);
         }
     }
