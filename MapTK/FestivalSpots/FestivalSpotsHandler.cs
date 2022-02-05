@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PlatoTK;
 using PlatoTK.Reflection;
-using Harmony;
+using HarmonyLib;
 using StardewValley;
 using System;
 
@@ -24,7 +24,7 @@ namespace MapTK.FestivalSpots
 
         private void GameLoop_GameLaunched(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
         {
-            var harmony = HarmonyInstance.Create("Platonymous.MapTK.FestivalSpots");
+            var harmony = new Harmony("Platonymous.MapTK.FestivalSpots");
 
             Helper.GetPlatoHelper().Events.CalledEventCommand += Events_CalledEventCommand;
 
