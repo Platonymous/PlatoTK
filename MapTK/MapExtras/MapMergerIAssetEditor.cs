@@ -35,7 +35,7 @@ namespace MapTK.MapExtras
         {
             if (asset.DataType == typeof(Map)
                 && GetMapMerges().FirstOrDefault(m => asset.AssetNameEquals(m.Target)) is MapMergeData merge
-                && Plato.ModHelper.Content.Load<Map>(merge.Source, ContentSource.GameContent) is Map patch) {
+                && Plato.ModHelper.GameContent.Load<Map>(merge.Source) is Map patch) {
                 Map patched = Plato.Content.Maps.PatchMapArea(asset.AsMap().Data, patch, new Point(merge.ToArea.X,merge.ToArea.Y), merge.FromArea, merge.PatchMapProperties,merge.RemoveEmpty);
                 asset.AsMap().PatchMap(patched, merge.ToArea, merge.ToArea);
 

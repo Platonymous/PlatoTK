@@ -25,9 +25,9 @@ namespace MapTK.MapExtras
             string[] path = asset.AssetName.Split(new[] { Path.DirectorySeparatorChar, '/', '\\' });
 
             if (path[0] == "GameContent")
-                return (T)(object)helper.Content.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(1)), ContentSource.GameContent);
+                return (T)(object)helper.GameContent.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(1)));
             else
-                return (T)(object)helper.Content.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(2)), ContentSource.GameContent);
+                return (T)(object)helper.GameContent.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(2)));
         }
     }
 }

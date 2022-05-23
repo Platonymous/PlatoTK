@@ -43,10 +43,10 @@ namespace MapTK.MapExtras
 
         private void InvalidateMerges(object sender, EventArgs e)
         {
-            Plato.ModHelper.Content.InvalidateCache(MapMergeDirectory);
-            MapMergerIAssetEditor.MapMergeDataSet = Plato.ModHelper.Content.Load<Dictionary<string, MapMergeData>>(MapMergeDirectory, ContentSource.GameContent);
-            var mm = Plato.ModHelper.Content.Load<Dictionary<string, MapMergeData>>(MapMergeDirectory, ContentSource.GameContent);
-            mm.Select(s => s.Value).ToList().ForEach(m => Plato.ModHelper.Content.InvalidateCache(m.Target));
+            Plato.ModHelper.GameContent.InvalidateCache(MapMergeDirectory);
+            MapMergerIAssetEditor.MapMergeDataSet = Plato.ModHelper.GameContent.Load<Dictionary<string, MapMergeData>>(MapMergeDirectory);
+            var mm = Plato.ModHelper.GameContent.Load<Dictionary<string, MapMergeData>>(MapMergeDirectory);
+            mm.Select(s => s.Value).ToList().ForEach(m => Plato.ModHelper.GameContent.InvalidateCache(m.Target));
         }
 
         private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)
