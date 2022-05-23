@@ -1,11 +1,12 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using StardewModdingAPI;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using Microsoft.Xna.Framework.Graphics;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
 
 namespace MapTK.MapExtras
 {
-    class GameAssetLoader : IAssetLoader
+    class GameAssetLoader
     {
         private IModHelper helper;
 
@@ -14,20 +15,23 @@ namespace MapTK.MapExtras
             this.helper = helper;
         }
 
-        public bool CanLoad<T>(IAssetInfo asset)
+        public void OnAssetRequested(AssetRequestedEventArgs e)
         {
-            string[] path = asset.AssetName.Split(new[] { Path.DirectorySeparatorChar, '/', '\\' });
-            return path[0] == "GameContent" || (path.Length > 1 && path[0] == "Maps" && path[1] == "GameContent"); 
-        }
+            if (e.DataType == typeof(Texture2D))
+            {
+                string[] path = e.Name.Name.Split(new[] { Path.DirectorySeparatorChar, '/', '\\' }, count: 3);
 
-        public T Load<T>(IAssetInfo asset)
-        {
-            string[] path = asset.AssetName.Split(new[] { Path.DirectorySeparatorChar, '/', '\\' });
+                switch (path[0])
+                {
+                    case "GameContent":
+                        e.LoadFrom(() => helper.GameContent.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(1))), AssetLoadPriority.Medium);
+                        break;
 
-            if (path[0] == "GameContent")
-                return (T)(object)helper.GameContent.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(1)));
-            else
-                return (T)(object)helper.GameContent.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(2)));
+                    case "Maps" when path.Length > 1 && path[1] == "GameContent":
+                        e.LoadFrom(() => helper.GameContent.Load<Texture>(string.Join(Path.DirectorySeparatorChar.ToString(), path.Skip(2))), AssetLoadPriority.Medium);
+                        break;
+                }
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using Microsoft.Xna.Framework;
-using StardewModdingAPI;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
 
 namespace PlatoTK.Content
 {
@@ -14,7 +14,7 @@ namespace PlatoTK.Content
         Load
     }
 
-    internal class AssetInjector : IAssetEditor, IAssetLoader
+    internal class AssetInjector
     {
         private readonly HashSet<AssetInjection> Injections;
         private readonly IPlatoHelper Helper;
@@ -25,8 +25,7 @@ namespace PlatoTK.Content
         {
             Helper = helper;
             Injections = new HashSet<AssetInjection>();
-            helper.ModHelper.Content.AssetEditors.Add(this);
-            helper.ModHelper.Content.AssetLoaders.Add(this);
+            helper.ModHelper.Events.Content.AssetRequested += OnAssetRequested;
         }
 
         internal void AddInjection(AssetInjection assetInjection)
@@ -34,19 +33,28 @@ namespace PlatoTK.Content
             Injections.Add(assetInjection);
         }
 
-        public bool CanEdit<T>(IAssetInfo asset)
+        private void OnAssetRequested(object sender, AssetRequestedEventArgs e)
         {
-            return Injections.Any(p => asset.AssetNameEquals(p.AssetName) && (p.Method != InjectionMethod.Load) && p.ConditionsMet);
+            AssetInjection[] injections = Injections
+                .Where(p => e.NameWithoutLocale.IsEquivalentTo(p.AssetName) && p.ConditionsMet)
+                .ToArray();
+
+            if (injections.Any())
+            {
+                var loaders = injections.Where(p => p.Method is InjectionMethod.Load).ToArray();
+                var editors = injections.Where(p => p.Method is not InjectionMethod.Load).ToArray();
+
+                if (loaders.Any())
+                    e.LoadFrom(() => this.Load(loaders), AssetLoadPriority.Medium);
+
+                if (editors.Any())
+                    e.Edit(asset => this.Edit(asset, editors));
+            }
         }
 
-        public bool CanLoad<T>(IAssetInfo asset)
+        private void Edit(IAssetData asset, AssetInjection[] editors)
         {
-            return Injections.Any(p => asset.AssetNameEquals(p.AssetName) && (p.Method == InjectionMethod.Load) && p.ConditionsMet);
-        }
-
-        public void Edit<T>(IAssetData asset)
-        {
-            foreach (var injection in Injections.Where(p => asset.AssetNameEquals(p.AssetName) && (p.Method != InjectionMethod.Load) && p.ConditionsMet))
+            foreach (var injection in editors)
                 if (injection is DataInjection dataInjection)
                 {
                     if (dataInjection.GetKeyType == typeof(int))
@@ -69,11 +77,11 @@ namespace PlatoTK.Content
                 {
                     if (mapInjection.Method == InjectionMethod.Merge)
                         asset.AsMap().PatchMap(mapInjection.Value, mapInjection.SourceArea, mapInjection.TargetArea);
-                    if(mapInjection.Method == InjectionMethod.Overlay)
+                    if (mapInjection.Method == InjectionMethod.Overlay)
                     {
-                       asset.ReplaceWith(Helper.Content.Maps.PatchMapArea(asset.AsMap().Data,
-                            mapInjection.Value, mapInjection.TargetArea.HasValue ?
-                            new Point(mapInjection.TargetArea.Value.X, mapInjection.TargetArea.Value.Y) : Point.Zero, mapInjection.SourceArea, true, false));
+                        asset.ReplaceWith(Helper.Content.Maps.PatchMapArea(asset.AsMap().Data,
+                             mapInjection.Value, mapInjection.TargetArea.HasValue ?
+                             new Point(mapInjection.TargetArea.Value.X, mapInjection.TargetArea.Value.Y) : Point.Zero, mapInjection.SourceArea, true, false));
                     }
                     else if (mapInjection.Method == InjectionMethod.Replace)
                         asset.ReplaceWith(mapInjection.Value);
@@ -82,7 +90,7 @@ namespace PlatoTK.Content
                     asset.ReplaceWith(objectInjection.Value);
         }
 
-        private IDictionary<TKey,string> injectData<TKey>(IAssetData asset, DataInjection injection)
+        private IDictionary<TKey, string> injectData<TKey>(IAssetData asset, DataInjection injection)
         {
             var dict = asset.AsDictionary<TKey, string>().Data;
             if (dict.ContainsKey(injection.GetKey<TKey>()))
@@ -116,35 +124,45 @@ namespace PlatoTK.Content
             return dict;
         }
 
-        public T Load<T>(IAssetInfo asset)
+        private object Load(AssetInjection[] loaders)
         {
             object result = null;
-            foreach (var injection in Injections.Where(p => asset.AssetNameEquals(p.AssetName) && (p.Method == InjectionMethod.Load) && p.ConditionsMet))
-                if (injection is DataInjection dataInjection)
+            foreach (var injection in loaders)
+            {
+                switch (injection)
                 {
-                    if (dataInjection.GetKeyType == typeof(int))
-                    {
-                        if (result is Dictionary<int, string> dict)
-                            dict.Add(dataInjection.GetKey<int>(), dataInjection.Value);
-                        else
-                            result = (new Dictionary<int, string>() { { dataInjection.GetKey<int>(), dataInjection.Value } });
-                    }
-                    else if (dataInjection.GetKeyType == typeof(string))
-                    {
-                        if (result is Dictionary<string, string> dict)
-                            dict.Add(dataInjection.GetKey<string>(), dataInjection.Value);
-                        else
-                            result = (new Dictionary<string, string>() { { dataInjection.GetKey<string>(), dataInjection.Value } });
-                    }
-                }
-                else if (injection is TextureInjection textureInjection)
-                    result = textureInjection.Value;
-                else if (injection is MapInjection mapInjection)
-                    result = mapInjection.Value;
-                else if (injection is ObjectInjection objectInjection)
-                    result = objectInjection.Value;
+                    case DataInjection dataInjection:
+                        if (dataInjection.GetKeyType == typeof(int))
+                        {
+                            if (result is Dictionary<int, string> dict)
+                                dict.Add(dataInjection.GetKey<int>(), dataInjection.Value);
+                            else
+                                result = (new Dictionary<int, string>() { { dataInjection.GetKey<int>(), dataInjection.Value } });
+                        }
+                        else if (dataInjection.GetKeyType == typeof(string))
+                        {
+                            if (result is Dictionary<string, string> dict)
+                                dict.Add(dataInjection.GetKey<string>(), dataInjection.Value);
+                            else
+                                result = (new Dictionary<string, string>() { { dataInjection.GetKey<string>(), dataInjection.Value } });
+                        }
+                        break;
 
-            return (T)result;
+                    case TextureInjection textureInjection:
+                        result = textureInjection.Value;
+                        break;
+
+                    case MapInjection mapInjection:
+                        result = mapInjection.Value;
+                        break;
+
+                    case ObjectInjection objectInjection:
+                        result = objectInjection.Value;
+                        break;
+                }
+            }
+
+            return result;
         }
 
     }
