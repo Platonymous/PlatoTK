@@ -6,6 +6,7 @@ using StardewValley;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StardewModdingAPI.Events;
 using xTile;
 using xTile.Layers;
 using xTile.ObjectModel;
@@ -13,7 +14,7 @@ using xTile.Tiles;
 
 namespace MapTK.MapExtras
 {
-    internal class IntegratedMapEditsAssetEditor : IAssetEditor
+    internal class IntegratedMapEditsAssetEditor
     {
         private readonly IPlatoHelper Plato;
         internal const string UseOrderProperty = "@As_Order";
@@ -22,12 +23,13 @@ namespace MapTK.MapExtras
             Plato = helper.GetPlatoHelper();
         }
 
-        public bool CanEdit<T>(IAssetInfo asset)
+        public void OnAssetRequested(AssetRequestedEventArgs e)
         {
-            return asset.DataType == typeof(Map);
+            if (e.DataType == typeof(Map))
+                e.Edit(this.Edit);
         }
 
-        public void Edit<T>(IAssetData asset)
+        private void Edit(IAssetData asset)
         {
             var mapAsset = asset.AsMap();
             var map = mapAsset.Data;

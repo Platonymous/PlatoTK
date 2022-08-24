@@ -1,5 +1,4 @@
 ﻿using StardewModdingAPI;
-using StardewValley;
 using StardewValley.Locations;
 using System;
 using System.Drawing;
@@ -55,7 +54,7 @@ namespace MapTK.SpouseRooms
                 rectangle = new Microsoft.Xna.Framework.Rectangle(pos[0], pos[1], 6, 9);
             }
 
-            Map spouseRoomMap = Helper.Content.Load<Map>(VanillaSpouseRoomMap, ContentSource.GameContent);
+            Map spouseRoomMap = Helper.GameContent.Load<Map>(VanillaSpouseRoomMap);
 
             int spot = GetIndexForSpouse(spouse);
             bool isVanilla = spot == -1;
