@@ -37,7 +37,7 @@ namespace PlatoTK.Events
             Caller = who ?? Game1.player;
             Location = location ?? Game1.currentLocation;
             Layer = Map?.GetLayer(layer);
-            Position = position == null ? Point.Zero : position;
+            Position = position;
             Callback = callback;
         }
 

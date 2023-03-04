@@ -246,7 +246,7 @@ namespace PlatoTK.Utils
                     else
                         item = Activator.CreateInstance(Type.GetType(name), index) is Item i ? i : null;
                 }
-                catch (Exception ex)
+                catch
                 {
                 }
             }
